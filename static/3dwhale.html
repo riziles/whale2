@@ -50,8 +50,8 @@
     'https://raw.githubusercontent.com/ToxSam/cc0-models-Polygonal-Mind/main/projects/ca-world/CAIO_Whale_01.glb',
     function (gltf) {
       const whale = gltf.scene;
-      whale.scale.set(0.5, 0.5, 0.5);
-      whale.position.y = -0.3;
+      whale.scale.set(0.3, 0.5, 0.45);  // shorter & fatter than default
+      whale.position.y = -0.2;
       scene.add(whale);
       console.log('Whale loaded!');
 
