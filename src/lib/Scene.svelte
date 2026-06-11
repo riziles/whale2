@@ -102,11 +102,13 @@
 
 		game.playerPosition = { ...playerPos };
 
-		// Camera follow — threlte.camera is a Svelte store, unwrap with unstore()
-		const cam = unstore(threlte.camera);
-		if (cam) {
-			cam.position.x += (playerPos.x - cam.position.x) * 3 * dt;
-			cam.position.z += (playerPos.z + 8 - cam.position.z) * 3 * dt;
+		// Camera follow
+		let cam = unstore(threlte.camera);
+		// Fallback: if unstore returns null/undefined, try direct access
+		if (!cam) cam = (threlte.camera as any).current ?? threlte.camera;
+		if (cam && typeof cam.position !== 'undefined') {
+			cam.position.x += (playerPos.x - cam.position.x) * Math.min(8 * dt, 1);
+			cam.position.z += (playerPos.z + 8 - cam.position.z) * Math.min(8 * dt, 1);
 			cam.position.y = 10;
 			cam.lookAt(playerPos.x, 0, playerPos.z);
 		}
