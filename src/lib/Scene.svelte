@@ -113,16 +113,6 @@
 			cam3d.position.z += (playerPos.z + 8 - cam3d.position.z) * Math.min(8 * delta, 1);
 			cam3d.position.y = 10;
 			cam3d.lookAt(playerPos.x, 0, playerPos.z);
-
-			// Screen projection for avatar overlays
-			for (const orb of game.orbs) {
-				if (orb.collected) continue;
-				const wp = new THREE.Vector3(orb.position.x, 1.5, orb.position.z);
-				const sp = wp.clone().project(cam3d);
-				orb.screenX = (sp.x * 0.5 + 0.5) * window.innerWidth;
-				orb.screenY = (-sp.y * 0.5 + 0.5) * window.innerHeight;
-				orb.behindCamera = sp.z > 1;
-			}
 		}
 	});
 
