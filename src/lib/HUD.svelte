@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { game } from './game.svelte';
-	import { resolveHandle, getFollows, getProfile } from './api';
+	import { resolveHandle, getFollows, getProfile, avatarUrl } from './api';
 	import { onMount } from 'svelte';
 
 	let handleInput = $state('norvid-studies.bsky.social');
@@ -192,6 +192,18 @@
 			<span class="hint">WASD or joystick to move</span>
 		</div>
 	</div>
+
+	<!-- Avatar overlays (outside Canvas, CSS-positioned) -->
+	{#each game.orbs as orb (orb.id)}
+		{#if !orb.collected && !orb.behindCamera && orb.profile.avatar}
+			<div
+				class="avatar-overlay"
+				style="left:{orb.screenX}px;top:{orb.screenY}px"
+			>
+				<img src={avatarUrl(orb.profile.avatar)} alt={orb.profile.handle} />
+			</div>
+		{/if}
+	{/each}
 
 	<!-- Mobile joystick -->
 	<!-- svelte-ignore a11y_no_static_element_interactions -->
@@ -473,25 +485,13 @@
 		box-shadow: 0 0 12px rgba(91, 138, 247, 0.5);
 		pointer-events: none;
 		transform: translate(-50%, -50%);
-		z-index: 9999;
-		background: rgba(0,0,0,0.3);
+		z-index: 40;
 	}
 	.avatar-overlay img {
 		width: 100%;
 		height: 100%;
 		object-fit: cover;
 		display: block;
-	}
-	.avatar-letter {
-		position: absolute;
-		inset: 0;
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		color: white;
-		font-weight: 700;
-		font-size: 18px;
-		text-shadow: 0 1px 3px rgba(0,0,0,0.5);
 	}
 
 	@media (min-width: 769px) {
