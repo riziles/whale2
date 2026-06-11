@@ -2,7 +2,17 @@
 	import { Canvas } from '@threlte/core';
 	import Scene from '$lib/Scene.svelte';
 	import HUD from '$lib/HUD.svelte';
+	import { inputKeys } from '$lib/game.svelte';
+
+	function handleKeyDown(e: KeyboardEvent) {
+		inputKeys[e.key.toLowerCase()] = true;
+	}
+	function handleKeyUp(e: KeyboardEvent) {
+		inputKeys[e.key.toLowerCase()] = false;
+	}
 </script>
+
+<svelte:window onkeydown={handleKeyDown} onkeyup={handleKeyUp} />
 
 <div class="app">
 	<Canvas

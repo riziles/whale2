@@ -10,6 +10,9 @@ export interface OrbData {
 	textureUrl: string | null;
 }
 
+// Shared keyboard state (non-reactive plain object for useTask polling)
+export const inputKeys: Record<string, boolean> = {};
+
 // Global game state using Svelte 5 runes
 class GameStore {
 	state = $state<GameState>('input');

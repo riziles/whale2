@@ -3,13 +3,13 @@
 	import { interactivity } from '@threlte/extras';
 	import * as THREE from 'three';
 	import { onMount } from 'svelte';
-	import { game } from './game.svelte';
+	import { game, inputKeys } from './game.svelte';
 	import Player from './Player.svelte';
 	import Orb from './Orb.svelte';
 
 	interactivity();
 
-	const { camera, renderer } = useThrelte();
+	const threlte = useThrelte();
 
 	// World bounds
 	const WORLD_SIZE = 14;
@@ -17,11 +17,8 @@
 
 	// Player movement
 	let playerPos = $state({ x: 0, z: 0 });
-	let moveDirection = $state({ x: 0, z: 0 });
 
-	// Input state
-	let keys = $state(new Set<string>());
-	let joystickActive = $state(false);
+	// Joystick
 	let joystickX = $state(0);
 	let joystickY = $state(0);
 
@@ -53,21 +50,13 @@
 		gridTexture.repeat.set(8, 8);
 	});
 
-	// Keyboard handling
-	function onKeyDown(e: KeyboardEvent) {
-		keys.add(e.key.toLowerCase());
-	}
-	function onKeyUp(e: KeyboardEvent) {
-		keys.delete(e.key.toLowerCase());
-	}
-
 	// Joystick input callback
 	function setJoystick(x: number, y: number) {
 		joystickX = x;
 		joystickY = y;
 	}
 
-	// Update player position and collision
+	// Main game loop
 	useTask((delta) => {
 		if (game.state !== 'playing') return;
 
@@ -75,25 +64,20 @@
 		let dx = 0;
 		let dz = 0;
 
-		// Keyboard
-		if (keys.has('w') || keys.has('arrowup')) dz -= 1;
-		if (keys.has('s') || keys.has('arrowdown')) dz += 1;
-		if (keys.has('a') || keys.has('arrowleft')) dx -= 1;
-		if (keys.has('d') || keys.has('arrowright')) dx += 1;
+		if (inputKeys['w'] || inputKeys['arrowup']) dz -= 1;
+		if (inputKeys['s'] || inputKeys['arrowdown']) dz += 1;
+		if (inputKeys['a'] || inputKeys['arrowleft']) dx -= 1;
+		if (inputKeys['d'] || inputKeys['arrowright']) dx += 1;
 
-		// Joystick
 		dx += joystickX;
 		dz += joystickY;
 
 		// Normalize
 		const len = Math.sqrt(dx * dx + dz * dz);
-		if (len > 1) {
-			dx /= len;
-			dz /= len;
-		}
+		if (len > 1) { dx /= len; dz /= len; }
 
 		// Move player
-		const dt = Math.min(delta, 0.1); // Cap delta for safety
+		const dt = Math.min(delta, 0.1);
 		playerPos.x += dx * PLAYER_SPEED * dt;
 		playerPos.z += dz * PLAYER_SPEED * dt;
 
@@ -101,105 +85,75 @@
 		playerPos.x = Math.max(-WORLD_SIZE / 2 + 1, Math.min(WORLD_SIZE / 2 - 1, playerPos.x));
 		playerPos.z = Math.max(-WORLD_SIZE / 2 + 1, Math.min(WORLD_SIZE / 2 - 1, playerPos.z));
 
-		// Rotate whale to face movement direction
-		if (len > 0.1) {
-			const angle = Math.atan2(dx, dz);
-			if (whaleGroup) {
-				whaleGroup.rotation.y = angle;
-			}
+		// Rotate whale
+		if (len > 0.1 && whaleGroup) {
+			whaleGroup.rotation.y = Math.atan2(dx, dz);
 		}
 
-		// Collision detection with orbs
+		// Collision detection
 		for (const orb of game.orbs) {
 			if (orb.collected) continue;
 			const dist = Math.sqrt(
 				(playerPos.x - orb.position.x) ** 2 + (playerPos.z - orb.position.z) ** 2
 			);
-			if (dist < 1.0) {
-				game.collectOrb(orb.id);
-			}
+			if (dist < 1.0) game.collectOrb(orb.id);
 		}
 
-		// Update game state
 		game.playerPosition = { ...playerPos };
 
 		// Camera follow
-		if (camera) {
-			camera.position.x += (playerPos.x - camera.position.x) * 3 * dt;
-			camera.position.z += (playerPos.z + 8 - camera.position.z) * 3 * dt;
-			camera.position.y = 10;
-			camera.lookAt(playerPos.x, 0, playerPos.z);
+		const cam = threlte.camera;
+		if (cam && 'position' in cam) {
+			cam.position.x += (playerPos.x - cam.position.x) * 3 * dt;
+			cam.position.z += (playerPos.z + 8 - cam.position.z) * 3 * dt;
+			cam.position.y = 10;
+			cam.lookAt(playerPos.x, 0, playerPos.z);
 		}
 	});
 
 	let whaleGroup = $state<THREE.Group>();
 
-	// Expose joystick handler globally
 	$effect(() => {
 		(window as any).__joystick = setJoystick;
+		(window as any).__gameState = game;
 		return () => {
 			delete (window as any).__joystick;
+			delete (window as any).__gameState;
 		};
 	});
 </script>
 
-<svelte:window onkeydown={onKeyDown} onkeyup={onKeyUp} />
-
 <!-- Ambient light -->
 <T.AmbientLight intensity={0.4} />
-
-<!-- Directional light (sun) -->
-<T.DirectionalLight
-	position={[5, 12, 3]}
-	intensity={1.2}
-	castShadow={false}
-/>
-
-<!-- Hemisphere light for sky/ground color -->
-<T.HemisphereLight
-	args={['#4488cc', '#112244', 0.6]}
-/>
+<T.DirectionalLight position={[5, 12, 3]} intensity={1.2} castShadow={false} />
+<T.HemisphereLight args={['#4488cc', '#112244', 0.6]} />
 
 <!-- Ground -->
 <T.Mesh rotation={[-Math.PI / 2, 0, 0]} receiveShadow position={[0, -0.05, 0]}>
 	<T.PlaneGeometry args={[WORLD_SIZE, WORLD_SIZE]} />
 	{#if gridTexture}
-		<T.MeshStandardMaterial
-			map={gridTexture}
-			color="#0d1b2a"
-			roughness={0.8}
-			metalness={0.1}
-		/>
+		<T.MeshStandardMaterial map={gridTexture} color="#0d1b2a" roughness={0.8} metalness={0.1} />
 	{:else}
 		<T.MeshStandardMaterial color="#0d1b2a" roughness={0.8} metalness={0.1} />
 	{/if}
 </T.Mesh>
 
 <!-- Ocean edge border -->
-<T.Mesh position={[0, -0.02, WORLD_SIZE / 2 + 0.25]} rotation={[-Math.PI / 2, 0, 0]}>
-	<T.PlaneGeometry args={[WORLD_SIZE + 2, 0.6]} />
-	<T.MeshStandardMaterial color="#081420" roughness={0.3} metalness={0.5} />
-</T.Mesh>
-<T.Mesh position={[0, -0.02, -WORLD_SIZE / 2 - 0.25]} rotation={[-Math.PI / 2, 0, 0]}>
-	<T.PlaneGeometry args={[WORLD_SIZE + 2, 0.6]} />
-	<T.MeshStandardMaterial color="#081420" roughness={0.3} metalness={0.5} />
-</T.Mesh>
-<T.Mesh position={[WORLD_SIZE / 2 + 0.25, -0.02, 0]} rotation={[-Math.PI / 2, 0, Math.PI / 2]}>
-	<T.PlaneGeometry args={[WORLD_SIZE + 2, 0.6]} />
-	<T.MeshStandardMaterial color="#081420" roughness={0.3} metalness={0.5} />
-</T.Mesh>
-<T.Mesh position={[-WORLD_SIZE / 2 - 0.25, -0.02, 0]} rotation={[-Math.PI / 2, 0, Math.PI / 2]}>
-	<T.PlaneGeometry args={[WORLD_SIZE + 2, 0.6]} />
-	<T.MeshStandardMaterial color="#081420" roughness={0.3} metalness={0.5} />
-</T.Mesh>
+{#each [[0, WORLD_SIZE/2+0.25], [0, -WORLD_SIZE/2-0.25]] as [x, z]}
+	<T.Mesh position={[x, -0.02, z]} rotation={[-Math.PI / 2, 0, 0]}>
+		<T.PlaneGeometry args={[WORLD_SIZE + 2, 0.6]} />
+		<T.MeshStandardMaterial color="#081420" roughness={0.3} metalness={0.5} />
+	</T.Mesh>
+{/each}
+{#each [[WORLD_SIZE/2+0.25, 0], [-WORLD_SIZE/2-0.25, 0]] as [x, z]}
+	<T.Mesh position={[x, -0.02, z]} rotation={[-Math.PI / 2, 0, Math.PI / 2]}>
+		<T.PlaneGeometry args={[WORLD_SIZE + 2, 0.6]} />
+		<T.MeshStandardMaterial color="#081420" roughness={0.3} metalness={0.5} />
+	</T.Mesh>
+{/each}
 
 <!-- Corner pillars -->
-{#each [
-	[WORLD_SIZE / 2, WORLD_SIZE / 2],
-	[-WORLD_SIZE / 2, WORLD_SIZE / 2],
-	[WORLD_SIZE / 2, -WORLD_SIZE / 2],
-	[-WORLD_SIZE / 2, -WORLD_SIZE / 2]
-] as corner}
+{#each [[WORLD_SIZE/2,WORLD_SIZE/2],[-WORLD_SIZE/2,WORLD_SIZE/2],[WORLD_SIZE/2,-WORLD_SIZE/2],[-WORLD_SIZE/2,-WORLD_SIZE/2]] as corner}
 	{@const cx = corner[0]}
 	{@const cz = corner[1]}
 	<T.Mesh position={[cx, 0.5, cz]}>
@@ -212,7 +166,7 @@
 	</T.Mesh>
 {/each}
 
-<!-- Player (whale) -->
+<!-- Player -->
 <T.Group bind:ref={whaleGroup}>
 	<Player {playerPos} onUpdate={() => {}} />
 </T.Group>
