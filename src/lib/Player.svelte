@@ -62,8 +62,12 @@
 			}
 		});
 
-		// Scale to game size
-		scene.scale.set(0.55, 0.7, 0.65);
+		// Scale to game size (fit ~15% of board)
+		scene.scale.set(0.12, 0.18, 0.16);
+
+		// Rotate so the whale faces +X (local forward = game forward)
+		// Most GLB models face +Z; we need +X, so rotate -90° around Y
+		scene.rotation.y = -Math.PI / 2;
 	}
 </script>
 
