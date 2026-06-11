@@ -53,6 +53,8 @@
       const whale = gltf.scene;
 
       // Override all materials with DeepSeek blue
+      // Also: shorten the snout by compressing front vertices
+      let minX = Infinity, maxX = -Infinity;
       whale.traverse((child) => {
         if (child.isMesh) {
           child.material = new THREE.MeshStandardMaterial({
@@ -60,6 +62,32 @@
             roughness: 0.3,
             metalness: 0.25
           });
+          // Find the X extent of this mesh's vertices
+          const pos = child.geometry.attributes.position;
+          for (let i = 0; i < pos.count; i++) {
+            const x = pos.getX(i);
+            if (x < minX) minX = x;
+            if (x > maxX) maxX = x;
+          }
+        }
+      });
+
+      // Shorten the snout: compress everything beyond 60% of the x-range inward
+      const snoutStart = minX + (maxX - minX) * 0.55;
+      const compression = 0.45; // how much to compress (0 = no change, 1 = flat)
+      whale.traverse((child) => {
+        if (child.isMesh) {
+          const pos = child.geometry.attributes.position;
+          for (let i = 0; i < pos.count; i++) {
+            const x = pos.getX(i);
+            if (x > snoutStart) {
+              const t = (x - snoutStart) / (maxX - snoutStart);
+              const newX = snoutStart + (x - snoutStart) * (1 - compression * t);
+              pos.setX(i, newX);
+            }
+          }
+          pos.needsUpdate = true;
+          child.geometry.computeVertexNormals();
         }
       });
 
