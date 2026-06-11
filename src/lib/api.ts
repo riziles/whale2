@@ -28,12 +28,6 @@ export async function getFollows(did: string, limit = 10): Promise<Profile[]> {
 	} as Profile));
 }
 
-
-// CORS proxy for avatar images (cdn.bsky.app doesn't send CORS headers)
-export function proxyImageUrl(url: string): string {
-	return `https://corsproxy.io/?${encodeURIComponent(url)}`;
-}
-
 export async function getProfile(did: string): Promise<Profile> {
 	const res = await fetch(
 		`https://public.api.bsky.app/xrpc/app.bsky.actor.getProfile?actor=${did}`

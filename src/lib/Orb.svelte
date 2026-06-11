@@ -3,7 +3,6 @@
 	import * as THREE from 'three';
 	import { onMount } from 'svelte';
 	import type { OrbData } from './game.svelte';
-	import { proxyImageUrl } from './api';
 
 	const { orb }: { orb: OrbData } = $props();
 
@@ -23,9 +22,9 @@
 	onMount(() => {
 		if (orb.textureUrl) {
 			const loader = new THREE.TextureLoader();
-			loader.crossOrigin = 'anonymous';
+			// No crossOrigin — load like an <img> tag (no CORS needed)
 			loader.load(
-				proxyImageUrl(orb.textureUrl),
+				orb.textureUrl,
 				(tex) => {
 					tex.colorSpace = THREE.SRGBColorSpace;
 					texture = tex;
