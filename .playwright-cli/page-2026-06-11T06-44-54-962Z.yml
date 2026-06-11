@@ -1,0 +1,39 @@
+- generic [ref=e3]:
+  - generic [ref=e4]:
+    - generic [ref=e16]:
+      - generic:
+        - img "cafkafk.bsky.social"
+    - generic [ref=e18]:
+      - generic:
+        - img "lathrys.at"
+    - generic [ref=e20]:
+      - generic:
+        - img "garrison.corporate.fm"
+    - generic [ref=e22]:
+      - generic:
+        - img "nrempel.com"
+    - generic [ref=e24]:
+      - generic:
+        - img "equalnotequals.com"
+    - generic [ref=e26]:
+      - generic:
+        - img "norvidlike.atproto.ceo"
+    - generic [ref=e28]:
+      - generic:
+        - img "oszillate.bsky.social"
+    - generic [ref=e30]:
+      - generic:
+        - img "fromthewestmeadow.com"
+    - generic [ref=e32]:
+      - generic:
+        - img "shimmermathlabs.com"
+    - generic [ref=e34]:
+      - generic:
+        - img "bluewin.bsky.social"
+  - generic:
+    - generic:
+      - generic:
+        - generic: 🦴
+        - generic: 0 / 10
+      - generic: norvid_studies
+    - generic: WASD or joystick to move

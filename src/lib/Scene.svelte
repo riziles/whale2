@@ -87,7 +87,7 @@
 
 		// Rotate whale to face movement direction
 		if (len > 0.1 && whaleGroup) {
-			whaleGroup.rotation.y = Math.atan2(dx, dz);
+			whaleGroup.rotation.y = Math.atan2(dz, dx) + Math.PI / 2;
 		}
 		// Move whaleGroup (world space) — NOT the inner mesh (local space)
 		if (whaleGroup) {
@@ -118,7 +118,8 @@
 
 	let whaleGroup = $state<THREE.Group>();
 
-	$effect(() => {
+	// Expose state for debugging/testing (onMount runs once, no re-renders)
+	onMount(() => {
 		(window as any).__joystick = setJoystick;
 		(window as any).__gameState = game;
 		return () => {
