@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { game } from './game.svelte';
-	import { resolveHandle, getFollows, getProfile, avatarUrl } from './api';
+	import { resolveHandle, getMutualFollows, getProfile, avatarUrl } from './api';
 	import { onMount } from 'svelte';
 
 	let handleInput = $state('norvid-studies.bsky.social');
@@ -16,10 +16,10 @@
 			game.state = 'loading';
 
 			const did = await resolveHandle(handle);
-			const follows = await getFollows(did, 10);
+			const follows = await getMutualFollows(did, 10);
 
 			if (follows.length === 0) {
-				game.error = 'No follows found for this user';
+				game.error = 'No mutual follows found. Try a different handle.';
 				game.state = 'input';
 				loading = false;
 				return;
@@ -143,7 +143,7 @@
 	<div class="overlay">
 		<div class="panel">
 			<h1>🦋 Whale Chaser</h1>
-			<p class="subtitle">Enter a Bluesky handle to chase their follows!</p>
+			<p class="subtitle">Enter a Bluesky handle to chase their mutual follows!</p>
 			<div class="input-row">
 				<span class="at-sign">@</span>
 				<input
@@ -171,7 +171,7 @@
 	<div class="overlay">
 		<div class="panel">
 			<div class="spinner"></div>
-			<p class="loading-text">Fetching follows for @{game.handle}...</p>
+			<p class="loading-text">Finding mutual follows for @{game.handle}...</p>
 		</div>
 	</div>
 {/if}
@@ -227,7 +227,7 @@
 		<div class="panel">
 			<h1>🎉 You ate them all!</h1>
 			<p class="subtitle">
-				All {game.targetOrbs} follows from @{game.handle} collected!
+				All {game.targetOrbs} mutual follows from @{game.handle} collected!
 			</p>
 			<div class="liked-list">
 				{#each game.orbs as orb}
