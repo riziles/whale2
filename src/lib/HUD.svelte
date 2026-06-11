@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { game } from './game.svelte';
-	import { resolveHandle, getLikes, getProfile } from './api';
+	import { resolveHandle, getFollows, getProfile } from './api';
 	import { onMount } from 'svelte';
 
 	let handleInput = $state('');
@@ -11,25 +11,20 @@
 		loading = true;
 		game.error = '';
 		try {
-			// Remove @ prefix if present
 			let handle = handleInput.trim().replace(/^@/, '');
 			game.handle = handle;
 			game.state = 'loading';
 
-			// Resolve handle to DID
 			const did = await resolveHandle(handle);
+			const follows = await getFollows(did, 10);
 
-			// Get likes
-			const likes = await getLikes(did, 10);
-
-			if (likes.length === 0) {
-				game.error = 'No likes found for this user';
+			if (follows.length === 0) {
+				game.error = 'No follows found for this user';
 				game.state = 'input';
 				loading = false;
 				return;
 			}
 
-			// Get user's own profile for the player name/avatar
 			try {
 				const profile = await getProfile(did);
 				game.playerName = profile.displayName || profile.handle;
@@ -38,34 +33,19 @@
 				game.playerName = handle;
 			}
 
-			// Create orbs from unique authors
-			const authorDids = new Set<string>();
-			const orbPosts: typeof likes = [];
-			for (const post of likes) {
-				const authorDid = post.author.did;
-				if (!authorDids.has(authorDid)) {
-					authorDids.add(authorDid);
-					orbPosts.push(post);
-				}
-			}
-
-			// Place orbs in a grid pattern on the ground
-			const WORLD_SIZE = 14;
-			const count = Math.min(orbPosts.length, 10);
-			game.orbs = orbPosts.slice(0, count).map((post, i) => {
-				// Create a ring/spiral pattern
+			const count = Math.min(follows.length, 10);
+			game.orbs = follows.slice(0, count).map((profile, i) => {
 				const angle = (i / count) * Math.PI * 2;
 				const radius = 2 + (i % 3) * 2;
 				return {
 					id: i,
-					post,
-					author: post.author,
+					profile,
 					position: {
 						x: Math.cos(angle) * radius,
 						z: Math.sin(angle) * radius
 					},
 					collected: false,
-					textureUrl: post.author.avatar || null
+					textureUrl: profile.avatar || null
 				};
 			});
 
@@ -138,7 +118,6 @@
 		if (joystickKnob) {
 			joystickKnob.style.transform = `translate(${dx}px, ${dy}px)`;
 		}
-		// Send to Scene via global (normalized -1 to 1)
 		const nx = dx / MAX_DIST;
 		const ny = dy / MAX_DIST;
 		if ((window as any).__joystick) {
@@ -147,7 +126,6 @@
 	}
 
 	onMount(() => {
-		// Initialize joystick to center
 		if ((window as any).__joystick) {
 			(window as any).__joystick(0, 0);
 		}
@@ -159,7 +137,7 @@
 	<div class="overlay">
 		<div class="panel">
 			<h1>🦋 Whale Chaser</h1>
-			<p class="subtitle">Enter a Bluesky handle to chase their likes!</p>
+			<p class="subtitle">Enter a Bluesky handle to chase their follows!</p>
 			<div class="input-row">
 				<span class="at-sign">@</span>
 				<input
@@ -187,7 +165,7 @@
 	<div class="overlay">
 		<div class="panel">
 			<div class="spinner"></div>
-			<p class="loading-text">Fetching likes for @{game.handle}...</p>
+			<p class="loading-text">Fetching follows for @{game.handle}...</p>
 		</div>
 	</div>
 {/if}
@@ -231,21 +209,21 @@
 		<div class="panel">
 			<h1>🎉 You ate them all!</h1>
 			<p class="subtitle">
-				All {game.targetOrbs} likes from @{game.handle} collected!
+				All {game.targetOrbs} follows from @{game.handle} collected!
 			</p>
 			<div class="liked-list">
 				{#each game.orbs as orb}
 					<div class="liked-item">
-						{#if orb.author.avatar}
+						{#if orb.profile.avatar}
 							<img
-								src={orb.author.avatar}
-								alt={orb.author.handle}
+								src={orb.profile.avatar}
+								alt={orb.profile.handle}
 								crossorigin="anonymous"
 							/>
 						{/if}
 						<div>
-							<div class="liked-name">{orb.author.displayName || orb.author.handle}</div>
-							<div class="liked-handle">@{orb.author.handle}</div>
+							<div class="liked-name">{orb.profile.displayName || orb.profile.handle}</div>
+							<div class="liked-handle">@{orb.profile.handle}</div>
 						</div>
 					</div>
 				{/each}
@@ -481,9 +459,6 @@
 	@media (min-width: 769px) {
 		.joystick-container {
 			display: none;
-		}
-		.hint {
-			display: block;
 		}
 	}
 	@media (max-width: 768px) {

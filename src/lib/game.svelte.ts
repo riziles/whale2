@@ -1,11 +1,10 @@
-import type { Post, Profile } from './api';
+import type { Profile } from './api';
 
 export type GameState = 'input' | 'loading' | 'playing' | 'complete';
 
 export interface OrbData {
 	id: number;
-	post: Post;
-	author: Profile;
+	profile: Profile;
 	position: { x: number; z: number };
 	collected: boolean;
 	textureUrl: string | null;

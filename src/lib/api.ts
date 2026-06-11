@@ -5,16 +5,6 @@ export interface Profile {
 	avatar: string;
 }
 
-export interface Post {
-	uri: string;
-	cid: string;
-	author: Profile;
-	record: {
-		text: string;
-		createdAt: string;
-	};
-}
-
 export async function resolveHandle(handle: string): Promise<string> {
 	const res = await fetch(
 		`https://public.api.bsky.app/xrpc/com.atproto.identity.resolveHandle?handle=${encodeURIComponent(handle)}`
@@ -24,13 +14,18 @@ export async function resolveHandle(handle: string): Promise<string> {
 	return json.did;
 }
 
-export async function getLikes(did: string, limit = 10): Promise<Post[]> {
+export async function getFollows(did: string, limit = 10): Promise<Profile[]> {
 	const res = await fetch(
-		`https://public.api.bsky.app/xrpc/app.bsky.feed.getActorLikes?actor=${did}&limit=${limit}`
+		`https://public.api.bsky.app/xrpc/app.bsky.graph.getFollows?actor=${did}&limit=${limit}`
 	);
-	if (!res.ok) throw new Error('Failed to fetch likes');
+	if (!res.ok) throw new Error('Failed to fetch follows');
 	const json = await res.json();
-	return (json.feed || []).map((f: any) => f.post as Post);
+	return (json.follows || []).map((f: any) => ({
+		did: f.did,
+		handle: f.handle,
+		displayName: f.displayName || '',
+		avatar: f.avatar || ''
+	} as Profile));
 }
 
 export async function getProfile(did: string): Promise<Profile> {
