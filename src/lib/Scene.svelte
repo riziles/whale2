@@ -87,7 +87,7 @@
 
 		// Rotate whale to face movement direction
 		if (len > 0.1 && whaleGroup) {
-			whaleGroup.rotation.y = Math.atan2(dz, dx);
+			whaleGroup.rotation.y = Math.atan2(-dz, dx);
 		}
 		// Move whaleGroup (world space) — NOT the inner mesh (local space)
 		if (whaleGroup) {
