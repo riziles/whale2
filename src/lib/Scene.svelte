@@ -134,16 +134,6 @@
 
 	let whaleGroup = $state<THREE.Group>();
 
-	// Set up event listeners
-	onMount(() => {
-		window.addEventListener('keydown', onKeyDown);
-		window.addEventListener('keyup', onKeyUp);
-		return () => {
-			window.removeEventListener('keydown', onKeyDown);
-			window.removeEventListener('keyup', onKeyUp);
-		};
-	});
-
 	// Expose joystick handler globally
 	$effect(() => {
 		(window as any).__joystick = setJoystick;
@@ -152,6 +142,8 @@
 		};
 	});
 </script>
+
+<svelte:window onkeydown={onKeyDown} onkeyup={onKeyUp} />
 
 <!-- Ambient light -->
 <T.AmbientLight intensity={0.4} />
