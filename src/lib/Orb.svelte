@@ -1,9 +1,12 @@
 <script lang="ts">
 	import { T, useTask } from '@threlte/core';
 	import * as THREE from 'three';
+	import { onMount } from 'svelte';
 	import type { OrbData } from './game.svelte';
 
 	const { orb }: { orb: OrbData } = $props();
+
+	let texture = $state<THREE.Texture | null>(null);
 
 	let floatY = $state(0);
 	let rotation = $state(0);
@@ -11,6 +14,17 @@
 	useTask((delta) => {
 		floatY = Math.sin(Date.now() * 0.002 + orb.id * 0.7) * 0.3;
 		rotation += delta * 0.5;
+	});
+
+	// Load avatar as texture (no crossOrigin = same relaxed rules as <img>)
+	onMount(() => {
+		if (orb.profile.avatar) {
+			const loader = new THREE.TextureLoader();
+			loader.load(orb.profile.avatar, (tex) => {
+				tex.colorSpace = THREE.SRGBColorSpace;
+				texture = tex;
+			});
+		}
 	});
 
 	const hue = $derived((orb.id * 37) % 360);
@@ -31,7 +45,11 @@
 
 		<T.Mesh>
 			<T.SphereGeometry args={[0.35, 32, 32]} />
-			<T.MeshStandardMaterial color={orbColor} roughness={0.2} metalness={0.6} />
+			{#if texture}
+				<T.MeshStandardMaterial map={texture} roughness={0.3} metalness={0.1} />
+			{:else}
+				<T.MeshStandardMaterial color={orbColor} roughness={0.2} metalness={0.6} />
+			{/if}
 		</T.Mesh>
 
 		<T.Mesh position={[0, -1.2 - floatY + 0.05, 0]} rotation.x={-Math.PI / 2}>
