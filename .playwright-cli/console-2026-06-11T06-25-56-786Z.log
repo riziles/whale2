@@ -1,0 +1,11 @@
+[   20670ms] TypeError: Cannot read properties of undefined (reading 'x')
+    at Task.callback (http://localhost:5399/src/lib/Scene.svelte?t=1781159177194:140:10)
+    at Task.run (http://localhost:5399/node_modules/.vite/deps/dist-DXlpU3Qc.js?v=1d7d132f:552:8)
+    at http://localhost:5399/node_modules/.vite/deps/dist-DXlpU3Qc.js?v=1d7d132f:596:10
+    at Stage.forEachNode (http://localhost:5399/node_modules/.vite/deps/dist-DXlpU3Qc.js?v=1d7d132f:484:85)
+    at http://localhost:5399/node_modules/.vite/deps/dist-DXlpU3Qc.js?v=1d7d132f:595:9
+    at Stage.callback (http://localhost:5399/node_modules/.vite/deps/dist-DXlpU3Qc.js?v=1d7d132f:574:23)
+    at Stage.run (http://localhost:5399/node_modules/.vite/deps/dist-DXlpU3Qc.js?v=1d7d132f:594:8)
+    at http://localhost:5399/node_modules/.vite/deps/dist-DXlpU3Qc.js?v=1d7d132f:660:10
+    at Scheduler.forEachNode (http://localhost:5399/node_modules/.vite/deps/dist-DXlpU3Qc.js?v=1d7d132f:483:62)
+    at Scheduler.run (http://localhost:5399/node_modules/.vite/deps/dist-DXlpU3Qc.js?v=1d7d132f:659:8)

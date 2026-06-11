@@ -1,7 +1,6 @@
 <script lang="ts">
 	import { T, useTask, useThrelte } from '@threlte/core';
 	import { interactivity } from '@threlte/extras';
-	import { get as unstore } from 'svelte/store';
 	import * as THREE from 'three';
 	import { onMount } from 'svelte';
 	import { game, inputKeys } from './game.svelte';
@@ -10,7 +9,7 @@
 
 	interactivity();
 
-	const threlte = useThrelte();
+	const { camera, renderer } = useThrelte();
 
 	// World bounds
 	const WORLD_SIZE = 14;
@@ -102,15 +101,13 @@
 
 		game.playerPosition = { ...playerPos };
 
-		// Camera follow
-		let cam = unstore(threlte.camera);
-		// Fallback: if unstore returns null/undefined, try direct access
-		if (!cam) cam = (threlte.camera as any).current ?? threlte.camera;
-		if (cam && typeof cam.position !== 'undefined') {
-			cam.position.x += (playerPos.x - cam.position.x) * Math.min(8 * dt, 1);
-			cam.position.z += (playerPos.z + 8 - cam.position.z) * Math.min(8 * dt, 1);
-			cam.position.y = 10;
-			cam.lookAt(playerPos.x, 0, playerPos.z);
+		// Camera follow — camera.current gives the Camera object directly
+		const cam3d = camera.current;
+		if (cam3d) {
+			cam3d.position.x += (playerPos.x - cam3d.position.x) * Math.min(8 * delta, 1);
+			cam3d.position.z += (playerPos.z + 8 - cam3d.position.z) * Math.min(8 * delta, 1);
+			cam3d.position.y = 10;
+			cam3d.lookAt(playerPos.x, 0, playerPos.z);
 		}
 	});
 
