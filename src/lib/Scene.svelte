@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { T, useTask, useThrelte } from '@threlte/core';
 	import { interactivity } from '@threlte/extras';
+	import { get as unstore } from 'svelte/store';
 	import * as THREE from 'three';
 	import { onMount } from 'svelte';
 	import { game, inputKeys } from './game.svelte';
@@ -101,9 +102,9 @@
 
 		game.playerPosition = { ...playerPos };
 
-		// Camera follow
-		const cam = threlte.camera;
-		if (cam && 'position' in cam) {
+		// Camera follow — threlte.camera is a Svelte store, unwrap with unstore()
+		const cam = unstore(threlte.camera);
+		if (cam) {
 			cam.position.x += (playerPos.x - cam.position.x) * 3 * dt;
 			cam.position.z += (playerPos.z + 8 - cam.position.z) * 3 * dt;
 			cam.position.y = 10;
