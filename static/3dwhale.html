@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Three.js Whale Example</title>
+  <style>
+    body { margin: 0; background: #000; }
+    canvas { display: block; }
+  </style>
+</head>
+<body>
+  <script type="importmap">
+{
+  "imports": {
+    "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+    "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+  }
+}
+  </script>
+  <script type="module">
+  import * as THREE from 'three';
+  import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+
+  // Scene setup
+  const scene = new THREE.Scene();
+  scene.background = new THREE.Color(0x001f33);
+
+  const camera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 0.1, 1000);
+  camera.position.set(0, 1, 6);
+  camera.lookAt(0, 0, 0);
+
+  const renderer = new THREE.WebGLRenderer({ antialias: true });
+  renderer.setSize(window.innerWidth, window.innerHeight);
+  document.body.appendChild(renderer.domElement);
+
+  // Lighting
+  const ambient = new THREE.AmbientLight(0x4488cc, 0.6);
+  scene.add(ambient);
+  const light = new THREE.DirectionalLight(0xffffff, 1.2);
+  light.position.set(5, 5, 5);
+  scene.add(light);
+  const light2 = new THREE.DirectionalLight(0x88aacc, 0.5);
+  light2.position.set(-3, 1, -2);
+  scene.add(light2);
+
+  // Load whale model (CC0 license - Polygonal Mind)
+  const loader = new GLTFLoader();
+  loader.load(
+    'https://raw.githubusercontent.com/ToxSam/cc0-models-Polygonal-Mind/main/projects/ca-world/CAIO_Whale_01.glb',
+    function (gltf) {
+      const whale = gltf.scene;
+      whale.scale.set(0.5, 0.5, 0.5);
+      whale.position.y = -0.3;
+      scene.add(whale);
+      console.log('Whale loaded!');
+
+      // Animation loop
+      function animate() {
+        requestAnimationFrame(animate);
+        whale.rotation.y += 0.005;
+        whale.position.y = -0.3 + Math.sin(Date.now() * 0.002) * 0.1;
+        renderer.render(scene, camera);
+      }
+      animate();
+    },
+    function (xhr) {
+      console.log((xhr.loaded / xhr.total * 100).toFixed(0) + '% loaded');
+    },
+    function (error) {
+      console.error('Error loading whale model:', error);
+      document.body.innerHTML += '<p style="color:red;text-align:center;margin-top:40px">Failed to load whale model. Check console.</p>';
+    }
+  );
+
+  // Handle window resize
+  window.addEventListener('resize', () => {
+    camera.aspect = window.innerWidth / window.innerHeight;
+    camera.updateProjectionMatrix();
+    renderer.setSize(window.innerWidth, window.innerHeight);
+  });
+  </script>
+</body>
+</html>
