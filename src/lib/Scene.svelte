@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { T, useTask, useThrelte } from '@threlte/core';
+	import { T, useTask } from '@threlte/core';
 	import { interactivity } from '@threlte/extras';
 	import * as THREE from 'three';
 	import { onMount } from 'svelte';
@@ -9,7 +9,7 @@
 
 	interactivity();
 
-	const { camera, renderer } = useThrelte();
+	let camRef = $state<THREE.PerspectiveCamera>();
 
 	// World bounds
 	const WORLD_SIZE = 14;
@@ -106,22 +106,24 @@
 
 		game.playerPosition = { ...playerPos };
 
-		// Camera follow — camera.current gives the Camera object directly
-		const cam3d = camera.current;
-		if (cam3d) {
-			cam3d.position.x += (playerPos.x - cam3d.position.x) * Math.min(8 * delta, 1);
-			cam3d.position.z += (playerPos.z + 8 - cam3d.position.z) * Math.min(8 * delta, 1);
-			cam3d.position.y = 10;
-			cam3d.lookAt(playerPos.x, 0, playerPos.z);
+		// Camera follow
+		if (camRef) {
+			camRef.position.x += (playerPos.x - camRef.position.x) * Math.min(8 * delta, 1);
+			camRef.position.z += (playerPos.z + 8 - camRef.position.z) * Math.min(8 * delta, 1);
+			camRef.position.y = 10;
+			camRef.lookAt(playerPos.x, 0, playerPos.z);
 
-			// Project orb positions to screen for avatar overlays
-			for (const orb of game.orbs) {
+			// Project orb positions to screen
+			for (let i = 0; i < game.orbs.length; i++) {
+				const orb = game.orbs[i];
 				if (orb.collected) continue;
 				const wp = new THREE.Vector3(orb.position.x, 1.5, orb.position.z);
-				const sp = wp.clone().project(cam3d);
-				orb.screenX = (sp.x * 0.5 + 0.5) * window.innerWidth;
-				orb.screenY = (-sp.y * 0.5 + 0.5) * window.innerHeight;
-				orb.behindCamera = sp.z > 1;
+				const sp = wp.clone().project(camRef);
+				game.orbs[i] = { ...orb,
+					screenX: (sp.x * 0.5 + 0.5) * window.innerWidth,
+					screenY: (-sp.y * 0.5 + 0.5) * window.innerHeight,
+					behindCamera: sp.z > 1
+				};
 			}
 		}
 	});
@@ -138,6 +140,14 @@
 		};
 	});
 </script>
+
+<!-- Camera -->
+<T.PerspectiveCamera
+	makeDefault
+	position={[0, 10, 8]}
+	bind:ref={camRef}
+	oncreate={(c) => c.lookAt(0, 0, 0)}
+/>
 
 <!-- Ambient light -->
 <T.AmbientLight intensity={0.4} />

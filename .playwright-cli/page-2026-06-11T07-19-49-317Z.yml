@@ -1,0 +1,7 @@
+- generic [ref=e7]:
+  - heading "🦋 Whale Chaser" [level=1] [ref=e8]
+  - paragraph [ref=e9]: Enter a Bluesky handle to chase their follows!
+  - generic [ref=e10]:
+    - generic [ref=e11]: "@"
+    - textbox "handle.bsky.social" [ref=e12]: norvid-studies.bsky.social
+    - button "Go" [ref=e13] [cursor=pointer]

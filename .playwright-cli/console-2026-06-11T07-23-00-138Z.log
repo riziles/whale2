@@ -1,0 +1,6 @@
+[     336ms] [ERROR] Failed to load resource: the server responded with a status of 404 (Not Found) @ http://localhost:5399/favicon.ico:0
+[   92444ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://localhost:5399/:0
+[   99771ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://localhost:5399/:0
+[   99946ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://localhost:5399/:0
+[  110368ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://localhost:5399/:0
+[  118831ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://localhost:5399/:0
