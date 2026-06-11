@@ -3,7 +3,7 @@
 	import { resolveHandle, getFollows, getProfile } from './api';
 	import { onMount } from 'svelte';
 
-	let handleInput = $state('');
+	let handleInput = $state('norvid-studies.bsky.social');
 	let loading = $state(false);
 
 	async function startGame() {

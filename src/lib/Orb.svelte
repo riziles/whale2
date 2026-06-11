@@ -1,14 +1,10 @@
 <script lang="ts">
 	import { T, useTask } from '@threlte/core';
+	import { HTML } from '@threlte/extras';
 	import * as THREE from 'three';
-	import { onMount } from 'svelte';
 	import type { OrbData } from './game.svelte';
 
 	const { orb }: { orb: OrbData } = $props();
-
-	let orbRef = $state<THREE.Mesh>();
-	let texture = $state<THREE.Texture | null>(null);
-	let textureLoaded = $state(false);
 
 	// Floating animation
 	let floatY = $state(0);
@@ -18,28 +14,10 @@
 		rotation += delta * 0.5;
 	});
 
-	// Load avatar texture
-	onMount(() => {
-		if (orb.textureUrl) {
-			const loader = new THREE.TextureLoader();
-			// No crossOrigin — load like an <img> tag (no CORS needed)
-			loader.load(
-				orb.textureUrl,
-				(tex) => {
-					tex.colorSpace = THREE.SRGBColorSpace;
-					texture = tex;
-					textureLoaded = true;
-				},
-				undefined,
-				() => {
-					// Fallback: use a colored material
-					textureLoaded = true;
-				}
-			);
-		} else {
-			textureLoaded = true;
-		}
-	});
+	// Unique colors per orb (derived so they update with orb changes)
+	const hue = $derived((orb.id * 37) % 360);
+	const orbColor = $derived(`hsl(${hue}, 70%, 55%)`);
+	const glowColor = $derived(`hsl(${hue}, 80%, 65%)`);
 </script>
 
 {#if !orb.collected}
@@ -51,20 +29,16 @@
 		<T.Mesh rotation.x={Math.PI / 2}>
 			<T.TorusGeometry args={[0.38, 0.03, 16, 32]} />
 			<T.MeshBasicMaterial
-				color={textureLoaded ? '#5b8af7' : '#666'}
+				color={glowColor}
 				transparent
-				opacity={0.6}
+				opacity={0.5}
 			/>
 		</T.Mesh>
 
-		<!-- Avatar sphere -->
-		<T.Mesh bind:ref={orbRef}>
+		<!-- Colored sphere -->
+		<T.Mesh>
 			<T.SphereGeometry args={[0.35, 32, 32]} />
-			{#if texture}
-				<T.MeshStandardMaterial map={texture} roughness={0.3} metalness={0.1} />
-			{:else}
-				<T.MeshStandardMaterial color="#334" roughness={0.3} metalness={0.3} />
-			{/if}
+			<T.MeshStandardMaterial color={orbColor} roughness={0.2} metalness={0.6} />
 		</T.Mesh>
 
 		<!-- Shadow/indicator on ground -->
@@ -74,11 +48,43 @@
 		>
 			<T.RingGeometry args={[0.2, 0.4, 32]} />
 			<T.MeshBasicMaterial
-				color="#5b8af7"
+				color={glowColor}
 				transparent
 				opacity={0.3}
 				side={THREE.DoubleSide}
 			/>
 		</T.Mesh>
+
+		<!-- HTML avatar overlay — no CORS because it's a real <img> tag -->
+		{#if orb.profile.avatar}
+			<HTML transform sprite center>
+				<div class="avatar-wrapper">
+					<img
+						src={orb.profile.avatar}
+						alt={orb.profile.handle}
+						loading="lazy"
+					/>
+				</div>
+			</HTML>
+		{/if}
 	</T.Group>
 {/if}
+
+<style>
+	.avatar-wrapper {
+		width: 44px;
+		height: 44px;
+		border-radius: 50%;
+		overflow: hidden;
+		border: 2px solid rgba(255, 255, 255, 0.4);
+		box-shadow: 0 0 12px rgba(91, 138, 247, 0.5);
+		pointer-events: none;
+		transform: translate(-50%, -50%);
+	}
+	.avatar-wrapper img {
+		width: 100%;
+		height: 100%;
+		object-fit: cover;
+		display: block;
+	}
+</style>
