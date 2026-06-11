@@ -28,6 +28,16 @@ export async function getFollows(did: string, limit = 10): Promise<Profile[]> {
 	} as Profile));
 }
 
+
+/** Rewrite cdn.bsky.app URLs through local proxy in dev mode */
+export function avatarUrl(cdnUrl: string): string {
+	if (typeof window === 'undefined') return cdnUrl;
+	if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+		return cdnUrl.replace('https://cdn.bsky.app/img/avatar/', '/avatar/');
+	}
+	return cdnUrl;
+}
+
 export async function getProfile(did: string): Promise<Profile> {
 	const res = await fetch(
 		`https://public.api.bsky.app/xrpc/app.bsky.actor.getProfile?actor=${did}`

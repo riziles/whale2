@@ -25,5 +25,14 @@ export default defineConfig({
 	],
 	ssr: {
 		noExternal: ['three']
+	},
+	server: {
+		proxy: {
+			'/avatar': {
+				target: 'https://cdn.bsky.app',
+				changeOrigin: true,
+				rewrite: (path: string) => path.replace(/^\/avatar/, '/img/avatar')
+			}
+		}
 	}
 });

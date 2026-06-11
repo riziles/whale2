@@ -193,18 +193,6 @@
 		</div>
 	</div>
 
-	<!-- Avatar overlays (outside Canvas, CSS-positioned) -->
-	{#each game.orbs as orb (orb.id)}
-		{#if !orb.collected && !orb.behindCamera}
-			<div
-				class="avatar-overlay"
-				style="left:{orb.screenX}px;top:{orb.screenY}px;background:hsl({(orb.id * 37) % 360},70%,55%)"
-			>
-				<span class="avatar-letter">{orb.profile.handle?.[0]?.toUpperCase() || '?'}</span>
-			</div>
-		{/if}
-	{/each}
-
 	<!-- Mobile joystick -->
 	<!-- svelte-ignore a11y_no_static_element_interactions -->
 	<div
