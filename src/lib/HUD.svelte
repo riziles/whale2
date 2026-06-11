@@ -195,12 +195,12 @@
 
 	<!-- Avatar overlays (outside Canvas, CSS-positioned) -->
 	{#each game.orbs as orb (orb.id)}
-		{#if !orb.collected && !orb.behindCamera}
+		{#if !orb.collected && !orb.behindCamera && orb.profile.avatar}
 			<div
 				class="avatar-overlay"
-				style="left:{orb.screenX}px;top:{orb.screenY}px;background:hsl({(orb.id * 37) % 360},70%,55%)"
+				style="left:{orb.screenX}px;top:{orb.screenY}px"
 			>
-				<span class="avatar-letter">{orb.profile.handle?.[0]?.toUpperCase() || '?'}</span>
+				<img src={orb.profile.avatar} alt={orb.profile.handle} />
 			</div>
 		{/if}
 	{/each}
@@ -492,17 +492,6 @@
 		height: 100%;
 		object-fit: cover;
 		display: block;
-	}
-	.avatar-letter {
-		position: absolute;
-		inset: 0;
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		color: white;
-		font-weight: 700;
-		font-size: 18px;
-		text-shadow: 0 1px 3px rgba(0,0,0,0.5);
 	}
 
 	@media (min-width: 769px) {
