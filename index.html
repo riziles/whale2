@@ -1,0 +1,785 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BlueSky Jetstream Viewer</title>
+  <style>
+    :root {
+      --bg: #111;
+      --surface: #1a1a2e;
+      --surface2: #16213e;
+      --text: #e0e0e0;
+      --text-muted: #888;
+      --accent: #5b8af7;
+      --accent-glow: rgba(91, 138, 247, 0.3);
+      --border: #2a2a4a;
+      --card-hover: #1e2a4a;
+      --danger: #f75b5b;
+      --success: #5bf78b;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: system-ui, -apple-system, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+    }
+
+    /* Sidebar */
+    .sidebar {
+      width: 320px;
+      min-width: 320px;
+      background: var(--surface);
+      border-right: 1px solid var(--border);
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+    .sidebar h1 {
+      font-size: 1.5rem;
+      font-weight: 700;
+      background: linear-gradient(135deg, var(--accent), #a78bfa);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .sidebar h1 span { font-size: 0.75rem; opacity: 0.6; }
+
+    /* Controls */
+    .controls { display: flex; gap: 8px; }
+    button {
+      padding: 10px 18px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 0.9rem;
+      font-weight: 600;
+      transition: all 0.2s;
+      flex: 1;
+    }
+    .btn-connect {
+      background: var(--accent);
+      color: #fff;
+      box-shadow: 0 0 20px var(--accent-glow);
+    }
+    .btn-connect:hover { filter: brightness(1.2); }
+    .btn-connect.connected {
+      background: var(--danger);
+      box-shadow: 0 0 20px rgba(247, 91, 91, 0.3);
+    }
+    .btn-clear {
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--text-muted);
+    }
+    .btn-clear:hover { border-color: var(--accent); color: var(--text); }
+
+    /* Endpoint selector */
+    .field { display: flex; flex-direction: column; gap: 6px; }
+    .field label {
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--text-muted);
+    }
+    select, input {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 8px 12px;
+      border-radius: 6px;
+      font-size: 0.85rem;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    select:focus, input:focus { border-color: var(--accent); }
+
+    /* Collection checkboxes */
+    .collection-list { display: flex; flex-direction: column; gap: 6px; }
+    .collection-list label {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.85rem;
+      cursor: pointer;
+      color: var(--text-muted);
+    }
+    .collection-list label.checked { color: var(--accent); }
+    .collection-list input[type="checkbox"] { accent-color: var(--accent); }
+
+    /* Stats */
+    .stats {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+    .stat {
+      background: var(--surface2);
+      padding: 12px;
+      border-radius: 8px;
+      text-align: center;
+    }
+    .stat .value {
+      font-size: 1.4rem;
+      font-weight: 700;
+      font-variant-numeric: tabular-nums;
+      color: var(--accent);
+    }
+    .stat .label {
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--text-muted);
+    }
+
+    /* Status indicator */
+    .status {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.85rem;
+      color: var(--text-muted);
+    }
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--text-muted);
+    }
+    .status-dot.online { background: var(--success); box-shadow: 0 0 8px rgba(91, 247, 139, 0.5); }
+    .status-dot.offline { background: var(--danger); box-shadow: 0 0 8px rgba(247, 91, 91, 0.3); }
+
+    /* Feed */
+    .feed {
+      flex: 1;
+      overflow-y: auto;
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 1px;
+    }
+    .feed::-webkit-scrollbar { width: 6px; }
+    .feed::-webkit-scrollbar-track { background: transparent; }
+    .feed::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+    /* Post card */
+    .post-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 16px;
+      transition: all 0.15s;
+      animation: slideIn 0.2s ease-out;
+    }
+    .post-card:hover { background: var(--card-hover); border-color: var(--accent); }
+    @keyframes slideIn {
+      from { opacity: 0; transform: translateY(-8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .post-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 6px;
+    }
+    .post-avatar {
+      width: 40px;
+      height: 40px;
+      min-width: 40px;
+      border-radius: 50%;
+      background: var(--accent);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 0.85rem;
+      color: #fff;
+      overflow: hidden;
+    }
+    .post-avatar img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    .post-avatar.loading { opacity: 0.6; }
+    .post-author {
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .post-handle { color: var(--text-muted); font-size: 0.85rem; }
+    .post-text {
+      line-height: 1.5;
+      margin: 8px 0;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+    .post-meta {
+      display: flex;
+      gap: 16px;
+      font-size: 0.75rem;
+      color: var(--text-muted);
+    }
+    .post-meta span { display: flex; align-items: center; gap: 4px; }
+
+    /* Empty state */
+    .empty-state {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      color: var(--text-muted);
+      gap: 12px;
+    }
+    .empty-state .icon { font-size: 3rem; }
+    .empty-state h2 { font-size: 1.2rem; }
+
+    /* Lookup */
+    .section-divider {
+      border: none;
+      border-top: 1px solid var(--border);
+      margin: 4px 0;
+    }
+    .lookup-row {
+      display: flex;
+      gap: 6px;
+    }
+    .lookup-row input {
+      flex: 1;
+      min-width: 0;
+    }
+    .btn-lookup {
+      flex: 0 0 auto;
+      padding: 8px 14px;
+      background: transparent;
+      border: 1px solid var(--accent);
+      color: var(--accent);
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 0.8rem;
+      font-weight: 600;
+      transition: all 0.2s;
+    }
+    .btn-lookup:hover { background: var(--accent); color: #fff; }
+    .btn-lookup:disabled { opacity: 0.4; cursor: not-allowed; }
+    .lookup-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 12px 16px;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      margin-bottom: 4px;
+    }
+  </style>
+</head>
+<body>
+  <aside class="sidebar">
+    <h1>🦋 BlueSky Jetstream <span>live</span></h1>
+
+    <div class="field">
+      <label>Endpoint</label>
+      <select id="endpoint">
+        <option value="wss://jetstream2.us-east.bsky.network/subscribe">US East 2</option>
+        <option value="wss://jetstream1.us-east.bsky.network/subscribe">US East 1</option>
+        <option value="wss://jetstream2.us-west.bsky.network/subscribe">US West 2</option>
+        <option value="wss://jetstream1.us-west.bsky.network/subscribe">US West 1</option>
+      </select>
+    </div>
+
+    <div class="field">
+      <label>Filter Collections</label>
+      <div class="collection-list">
+        <label class="checked">
+          <input type="checkbox" value="app.bsky.feed.post" checked> Posts
+        </label>
+        <label>
+          <input type="checkbox" value="app.bsky.feed.like"> Likes
+        </label>
+        <label>
+          <input type="checkbox" value="app.bsky.feed.repost"> Reposts
+        </label>
+        <label>
+          <input type="checkbox" value="app.bsky.graph.follow"> Follows
+        </label>
+      </div>
+    </div>
+
+    <hr class="section-divider">
+
+    <div class="field">
+      <label>Lookup User</label>
+      <div class="lookup-row">
+        <input id="lookupInput" type="text" placeholder="handle or DID..." 
+               autocomplete="off" spellcheck="false">
+        <button id="lookupBtn" class="btn-lookup">Go</button>
+      </div>
+    </div>
+
+    <div class="controls">
+      <button id="toggleBtn" class="btn-connect">Connect</button>
+      <button id="clearBtn" class="btn-clear">Clear</button>
+    </div>
+
+    <div class="status">
+      <div class="status-dot offline" id="statusDot"></div>
+      <span id="statusText">Disconnected</span>
+    </div>
+
+    <div class="stats">
+      <div class="stat">
+        <div class="value" id="msgCount">0</div>
+        <div class="label">Messages</div>
+      </div>
+      <div class="stat">
+        <div class="value" id="msgRate">0</div>
+        <div class="label">Msg/sec</div>
+      </div>
+      <div class="stat">
+        <div class="value" id="postCount">0</div>
+        <div class="label">Posts</div>
+      </div>
+      <div class="stat">
+        <div class="value" id="uptime">0s</div>
+        <div class="label">Uptime</div>
+      </div>
+      <div class="stat" style="grid-column: span 2;">
+        <div class="value" id="cacheStats">-</div>
+        <div class="label">Profiles (fetched / cached)</div>
+      </div>
+    </div>
+  </aside>
+
+  <main class="feed" id="feed">
+    <div class="empty-state">
+      <div class="icon">🦋</div>
+      <h2>Connect to start watching the firehose</h2>
+      <p>Posts will appear here in real time</p>
+    </div>
+  </main>
+
+  <script>
+    (() => {
+      // --- DOM refs ---
+      const toggleBtn = document.getElementById('toggleBtn');
+      const clearBtn = document.getElementById('clearBtn');
+      const endpointSel = document.getElementById('endpoint');
+      const feed = document.getElementById('feed');
+      const statusDot = document.getElementById('statusDot');
+      const statusText = document.getElementById('statusText');
+      const msgCountEl = document.getElementById('msgCount');
+      const msgRateEl = document.getElementById('msgRate');
+      const postCountEl = document.getElementById('postCount');
+      const uptimeEl = document.getElementById('uptime');
+      const cacheStatsEl = document.getElementById('cacheStats');
+      const lookupInput = document.getElementById('lookupInput');
+      const lookupBtn = document.getElementById('lookupBtn');
+      const collectionCheckboxes = document.querySelectorAll('.collection-list input[type="checkbox"]');
+
+      // --- State ---
+      let ws = null;
+      let connected = false;
+      let msgCount = 0;
+      let postCount = 0;
+      let connectTime = null;
+      let rateWindow = [];
+      let uptimeInterval = null;
+      let isAtBottom = true; // auto-scroll tracking
+
+      // --- Profile cache ---
+      const profileCache = new Map(); // did -> { displayName, handle, avatar }
+      let profileFetchCount = 0;
+      let profileCacheHits = 0;
+
+      async function resolveProfile(did) {
+        if (profileCache.has(did)) {
+          profileCacheHits++;
+          return profileCache.get(did);
+        }
+        try {
+          const res = await fetch(
+            `https://public.api.bsky.app/xrpc/app.bsky.actor.getProfile?actor=${did}`
+          );
+          if (!res.ok) throw new Error(`HTTP ${res.status}`);
+          const json = await res.json();
+          const profile = {
+            displayName: json.displayName || '',
+            handle: json.handle || '',
+            avatar: json.avatar || ''
+          };
+          profileCache.set(did, profile);
+          profileFetchCount++;
+          return profile;
+        } catch (e) {
+          // Cache failures too (null) so we don't retry endlessly
+          profileCache.set(did, null);
+          return null;
+        }
+      }
+
+      // --- Build connection URL ---
+      function buildUrl() {
+        const base = endpointSel.value;
+        const wanted = [...collectionCheckboxes]
+          .filter(cb => cb.checked)
+          .map(cb => `wantedCollections=${cb.value}`);
+        return base + (wanted.length ? '?' + wanted.join('&') : '');
+      }
+
+      // --- UI helpers ---
+      function setConnected(state) {
+        connected = state;
+        toggleBtn.textContent = state ? 'Disconnect' : 'Connect';
+        toggleBtn.classList.toggle('connected', state);
+        statusDot.classList.toggle('online', state);
+        statusDot.classList.toggle('offline', !state);
+        statusText.textContent = state ? 'Connected' : 'Disconnected';
+
+        if (state) {
+          connectTime = Date.now();
+          uptimeInterval = setInterval(updateUptime, 1000);
+        } else {
+          clearInterval(uptimeInterval);
+          uptimeEl.textContent = '0s';
+          connectTime = null;
+        }
+      }
+
+      function updateUptime() {
+        if (!connectTime) return;
+        const sec = Math.floor((Date.now() - connectTime) / 1000);
+        uptimeEl.textContent = sec < 60 ? `${sec}s` : `${Math.floor(sec/60)}m ${sec%60}s`;
+      }
+
+      function updateRate() {
+        const now = Date.now();
+        rateWindow = rateWindow.filter(t => now - t < 1000);
+        msgRateEl.textContent = rateWindow.length;
+      }
+
+      function addPost(eventData) {
+        // Remove empty state if present
+        const emptyState = feed.querySelector('.empty-state');
+        if (emptyState) emptyState.remove();
+
+        const record = eventData.commit?.record;
+        if (!record?.text) return; // non-post or no text
+
+        const did = eventData.did;
+        const time = new Date(eventData.time_us / 1000);
+        const avatarLetter = did.slice(8, 9).toUpperCase() || '?';
+
+        const card = document.createElement('div');
+        card.className = 'post-card';
+        card.innerHTML = `
+          <div class="post-header">
+            <div class="post-avatar loading">${avatarLetter}</div>
+            <div>
+              <div class="post-author">
+                <span class="author-name">${he(shortDid(did))}</span>
+              </div>
+              <div class="post-handle">${time.toLocaleTimeString()}</div>
+            </div>
+          </div>
+          <div class="post-text">${he(record.text)}</div>
+          <div class="post-meta">
+            ${record.replyCount != null ? `<span>💬 ${record.replyCount}</span>` : ''}
+            ${record.repostCount != null ? `<span>♻️ ${record.repostCount}</span>` : ''}
+            ${record.likeCount != null ? `<span>❤️ ${record.likeCount}</span>` : ''}
+          </div>
+        `;
+
+        // Track scroll position before adding
+        const wasAtBottom = isScrolledToBottom();
+        feed.appendChild(card);
+
+        // Limit feed to 200 cards
+        while (feed.children.length > 200) {
+          feed.removeChild(feed.firstChild);
+        }
+
+        // Auto-scroll only if user was at bottom
+        if (wasAtBottom) {
+          feed.scrollTop = feed.scrollHeight;
+        }
+
+        // Resolve profile asynchronously and update the card
+        const avatarEl = card.querySelector('.post-avatar');
+        const nameEl = card.querySelector('.author-name');
+        const handleEl = card.querySelector('.post-handle');
+
+        resolveProfile(did).then(profile => {
+          if (profile) {
+            // Update display name
+            nameEl.textContent = profile.displayName || profile.handle || shortDid(did);
+            // Update handle line
+            if (profile.handle) {
+              handleEl.textContent = `@${profile.handle} · ${time.toLocaleTimeString()}`;
+            }
+            // Update avatar
+            if (profile.avatar) {
+              avatarEl.innerHTML = `<img src="${he(profile.avatar)}" alt="" loading="lazy"
+                onerror="this.parentElement.textContent='${avatarLetter}';this.parentElement.classList.remove('loading')"
+                onload="this.parentElement.classList.remove('loading')"
+              >`;
+            }
+          }
+          avatarEl.classList.remove('loading');
+        });
+      }
+
+      function isScrolledToBottom() {
+        return feed.scrollHeight - feed.scrollTop - feed.clientHeight < 60;
+      }
+
+      function shortDid(did) {
+        if (!did) return 'unknown';
+        return did.length > 20 ? did.slice(0, 16) + '...' : did;
+      }
+
+      function he(str) {
+        const div = document.createElement('div');
+        div.textContent = str;
+        return div.innerHTML;
+      }
+
+      // --- WebSocket ---
+      function connect() {
+        if (ws) return;
+        const url = buildUrl();
+        statusText.textContent = `Connecting...`;
+
+        ws = new WebSocket(url);
+
+        ws.onopen = () => {
+          setConnected(true);
+          msgCount = 0;
+          postCount = 0;
+          rateWindow = [];
+          msgCountEl.textContent = '0';
+          postCountEl.textContent = '0';
+          msgRateEl.textContent = '0';
+          console.log('[Jetstream] Connected to', url);
+        };
+
+        ws.onmessage = (event) => {
+          try {
+            const data = JSON.parse(event.data);
+            msgCount++;
+            rateWindow.push(Date.now());
+
+            // Count posts
+            if (data.kind === 'commit' && data.commit?.operation === 'create') {
+              if (data.commit.collection === 'app.bsky.feed.post') {
+                postCount++;
+                addPost(data);
+              }
+            }
+
+            msgCountEl.textContent = msgCount.toLocaleString();
+            postCountEl.textContent = postCount.toLocaleString();
+            updateRate();
+            // Update cache stats every 50 messages
+            if (msgCount % 50 === 0) {
+              cacheStatsEl.textContent = `${profileCache.size} / ${profileCacheHits}`;
+            }
+          } catch (e) {
+            console.warn('[Jetstream] Parse error:', e);
+          }
+        };
+
+        ws.onerror = (err) => {
+          console.error('[Jetstream] WebSocket error:', err);
+          statusText.textContent = 'Error - retrying...';
+        };
+
+        ws.onclose = (e) => {
+          console.log('[Jetstream] Closed:', e.code, e.reason);
+          ws = null;
+          setConnected(false);
+          // Auto-reconnect after 3 seconds
+          if (connected === false || e.code !== 1000) {
+            setTimeout(() => {
+              if (!ws && !connected) {
+                statusText.textContent = 'Reconnecting...';
+                connect();
+              }
+            }, 3000);
+          }
+        };
+      }
+
+      function disconnect() {
+        if (ws) {
+          ws.close(1000, 'User disconnected');
+          ws = null;
+        }
+        setConnected(false);
+      }
+
+      // --- Event listeners ---
+      toggleBtn.addEventListener('click', () => {
+        if (connected) disconnect();
+        else connect();
+      });
+
+      clearBtn.addEventListener('click', () => {
+        feed.innerHTML = `
+          <div class="empty-state">
+            <div class="icon">🦋</div>
+            <h2>Cleared</h2>
+            <p>New posts will appear here</p>
+          </div>
+        `;
+        msgCount = 0;
+        postCount = 0;
+        rateWindow = [];
+        msgCountEl.textContent = '0';
+        postCountEl.textContent = '0';
+        msgRateEl.textContent = '0';
+      });
+
+      // Collection checkbox styling
+      collectionCheckboxes.forEach(cb => {
+        cb.addEventListener('change', () => {
+          cb.closest('label').classList.toggle('checked', cb.checked);
+          // If connected, reconnect with new filters
+          if (connected) {
+            disconnect();
+            setTimeout(connect, 300);
+          }
+        });
+      });
+
+      // Endpoint change = reconnect if connected
+      endpointSel.addEventListener('change', () => {
+        if (connected) {
+          disconnect();
+          setTimeout(connect, 300);
+        }
+      });
+
+      // --- User lookup ---
+      async function lookupUser(query) {
+        lookupBtn.disabled = true;
+        lookupBtn.textContent = '...';
+        try {
+          // Fetch both profile and feed in parallel
+          const [profileRes, feedRes] = await Promise.all([
+            fetch(`https://public.api.bsky.app/xrpc/app.bsky.actor.getProfile?actor=${encodeURIComponent(query)}`),
+            fetch(`https://public.api.bsky.app/xrpc/app.bsky.feed.getAuthorFeed?actor=${encodeURIComponent(query)}&limit=3`)
+          ]);
+          if (!profileRes.ok || !feedRes.ok) throw new Error('User not found');
+          const profile = (await profileRes.json());
+          const feedData = (await feedRes.json());
+          const posts = (feedData.feed || []).map(f => f.post);
+
+          // Clear feed area
+          const emptyState = feed.querySelector('.empty-state');
+          if (emptyState) emptyState.remove();
+          feed.innerHTML = '';
+
+          // Add lookup header
+          const header = document.createElement('div');
+          header.className = 'lookup-header';
+          header.innerHTML = `
+            <div class="post-avatar">
+              ${profile.avatar 
+                ? `<img src="${he(profile.avatar)}" alt="" onerror="this.parentElement.textContent='${(profile.handle||'?')[0].toUpperCase()}'">`
+                : (profile.handle || '?')[0].toUpperCase()}
+            </div>
+            <div>
+              <div style="font-weight:600;">${he(profile.displayName || '')}</div>
+              <div style="color:var(--text-muted);font-size:0.85rem;">@${he(profile.handle || query)} — last 3 posts</div>
+            </div>
+          `;
+          feed.appendChild(header);
+
+          if (posts.length === 0) {
+            const empty = document.createElement('div');
+            empty.className = 'empty-state';
+            empty.innerHTML = '<div class="icon">🤷</div><h2>No posts found</h2>';
+            feed.appendChild(empty);
+          } else {
+            // Render each post
+            for (const post of posts) {
+              const record = post.record;
+              const time = new Date(record.createdAt);
+              const card = document.createElement('div');
+              card.className = 'post-card';
+              card.innerHTML = `
+                <div class="post-header">
+                  <div class="post-avatar">
+                    ${profile.avatar 
+                      ? `<img src="${he(profile.avatar)}" alt="" onerror="this.parentElement.textContent='${(profile.handle||'?')[0].toUpperCase()}'">`
+                      : (profile.handle || '?')[0].toUpperCase()}
+                  </div>
+                  <div>
+                    <div class="post-author">
+                      <span class="author-name">${he(profile.displayName || profile.handle || '')}</span>
+                    </div>
+                    <div class="post-handle">@${he(profile.handle || query)} · ${time.toLocaleString()}</div>
+                  </div>
+                </div>
+                <div class="post-text">${he(record.text)}</div>
+                <div class="post-meta">
+                  ${record.replyCount != null ? `<span>💬 ${record.replyCount}</span>` : ''}
+                  ${record.repostCount != null ? `<span>♻️ ${record.repostCount}</span>` : ''}
+                  ${record.likeCount != null ? `<span>❤️ ${record.likeCount}</span>` : ''}
+                </div>
+              `;
+              feed.appendChild(card);
+            }
+          }
+        } catch (e) {
+          // Show error in feed
+          const emptyState = feed.querySelector('.empty-state');
+          if (emptyState) emptyState.remove();
+          feed.innerHTML = `
+            <div class="empty-state">
+              <div class="icon">😕</div>
+              <h2>${he(e.message)}</h2>
+              <p>Try a handle like <code>bsky.app</code> or a full DID</p>
+            </div>
+          `;
+          console.error('[Lookup]', e);
+        } finally {
+          lookupBtn.disabled = false;
+          lookupBtn.textContent = 'Go';
+        }
+      }
+
+      lookupBtn.addEventListener('click', () => {
+        const query = lookupInput.value.trim();
+        if (query) lookupUser(query);
+      });
+      lookupInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+          const query = lookupInput.value.trim();
+          if (query) lookupUser(query);
+        }
+      });
+
+      // Auto-scroll tracking
+      feed.addEventListener('scroll', () => {
+        isAtBottom = isScrolledToBottom();
+      });
+
+      // Keyboard shortcuts
+      document.addEventListener('keydown', (e) => {
+        if (e.key === ' ' && e.target === document.body) {
+          e.preventDefault();
+          if (connected) disconnect();
+          else connect();
+        }
+      });
+    })();
+  </script>
+</body>
+</html>
