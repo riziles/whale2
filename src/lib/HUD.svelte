@@ -485,7 +485,8 @@
 		box-shadow: 0 0 12px rgba(91, 138, 247, 0.5);
 		pointer-events: none;
 		transform: translate(-50%, -50%);
-		z-index: 40;
+		z-index: 9999;
+		background: rgba(0,0,0,0.3);
 	}
 	.avatar-overlay img {
 		width: 100%;
