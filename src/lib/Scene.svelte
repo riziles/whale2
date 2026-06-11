@@ -85,9 +85,14 @@
 		playerPos.x = Math.max(-WORLD_SIZE / 2 + 1, Math.min(WORLD_SIZE / 2 - 1, playerPos.x));
 		playerPos.z = Math.max(-WORLD_SIZE / 2 + 1, Math.min(WORLD_SIZE / 2 - 1, playerPos.z));
 
-		// Rotate whale
+		// Rotate whale to face movement direction
 		if (len > 0.1 && whaleGroup) {
 			whaleGroup.rotation.y = Math.atan2(dx, dz);
+		}
+		// Move whaleGroup (world space) — NOT the inner mesh (local space)
+		if (whaleGroup) {
+			whaleGroup.position.x = playerPos.x;
+			whaleGroup.position.z = playerPos.z;
 		}
 
 		// Collision detection

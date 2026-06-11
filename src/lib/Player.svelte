@@ -13,11 +13,9 @@
 	let bobOffset = $state(0);
 	useTask((delta) => {
 		bobOffset = Math.sin(Date.now() * 0.003) * 0.15;
-		// Rotate slightly based on movement direction for a "swimming" feel
 		if (whaleRef) {
-			whaleRef.position.x = playerPos.x;
-			whaleRef.position.z = playerPos.z;
-			whaleRef.position.y = 0.6 + bobOffset;
+			// Only handle bob — position is set by parent via whaleGroup
+			whaleRef.position.y = bobOffset;
 		}
 	});
 
