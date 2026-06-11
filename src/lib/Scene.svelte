@@ -192,8 +192,8 @@
 		const cam3d = camera.current;
 		if (cam3d) {
 			cam3d.position.x += (playerPos.x - cam3d.position.x) * Math.min(8 * delta, 1);
-			cam3d.position.z += (playerPos.z + 6 - cam3d.position.z) * Math.min(8 * delta, 1);
-			cam3d.position.y = 8;
+			cam3d.position.z += (playerPos.z + 4 - cam3d.position.z) * Math.min(6 * delta, 1);
+			cam3d.position.y = 5;
 			cam3d.lookAt(playerPos.x, 0, playerPos.z);
 
 			// Screen projection for avatar overlays
