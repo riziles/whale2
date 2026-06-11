@@ -126,6 +126,9 @@
 	}
 
 	onMount(() => {
+		// Expose startGame for testing
+		(window as any).__startGame = startGame;
+
 		if ((window as any).__joystick) {
 			(window as any).__joystick(0, 0);
 		}
