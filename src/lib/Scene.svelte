@@ -3,7 +3,7 @@
 	import { interactivity } from '@threlte/extras';
 	import * as THREE from 'three';
 	import { onMount } from 'svelte';
-	import { game, inputKeys } from './game.svelte';
+	import { game, inputKeys, orbVelocities } from './game.svelte';
 	import Player from './Player.svelte';
 	import Orb from './Orb.svelte';
 
@@ -105,6 +105,49 @@
 		}
 
 		game.playerPosition = { ...playerPos };
+
+		// Orb AI movement
+		const ORB_SPEED = 2;
+		for (let i = 0; i < game.orbs.length; i++) {
+			const orb = game.orbs[i];
+			if (orb.collected) continue;
+
+			// Init velocity if new
+			if (!orbVelocities[i]) {
+				const angle = Math.random() * Math.PI * 2;
+				orbVelocities[i] = { vx: Math.cos(angle), vz: Math.sin(angle), timer: 0 };
+			}
+
+			const vel = orbVelocities[i];
+			vel.timer -= delta;
+
+			// Change direction every 1-3 seconds
+			if (vel.timer <= 0) {
+				const angle = Math.random() * Math.PI * 2;
+				vel.vx = Math.cos(angle);
+				vel.vz = Math.sin(angle);
+				vel.timer = 1 + Math.random() * 2;
+			}
+
+			// Flee from whale if close
+			const dx = orb.position.x - playerPos.x;
+			const dz = orb.position.z - playerPos.z;
+			const dist = Math.sqrt(dx * dx + dz * dz);
+			if (dist < 3) {
+				vel.vx = dx / dist;
+				vel.vz = dz / dist;
+				vel.timer = 0.5;
+			}
+
+			// Move orb
+			const nx = orb.position.x + vel.vx * ORB_SPEED * delta;
+			const nz = orb.position.z + vel.vz * ORB_SPEED * delta;
+			const hw = WORLD_SIZE / 2 - 1.5;
+			const cx = Math.max(-hw, Math.min(hw, nx));
+			const cz = Math.max(-hw, Math.min(hw, nz));
+			// Replace orb to trigger Svelte reactivity
+			game.orbs[i] = { ...orb, position: { x: cx, z: cz } };
+		}
 
 		// Camera follow
 		const cam3d = camera.current;

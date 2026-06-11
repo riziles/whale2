@@ -13,8 +13,11 @@ export interface OrbData {
 	behindCamera: boolean;
 }
 
-// Shared keyboard state (non-reactive plain object for useTask polling)
+	// Shared keyboard state (non-reactive plain object for useTask polling)
 export const inputKeys: Record<string, boolean> = {};
+
+// Orb AI movement state
+export const orbVelocities: { vx: number; vz: number; timer: number }[] = [];
 
 // Global game state using Svelte 5 runes
 class GameStore {
