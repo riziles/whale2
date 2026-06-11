@@ -22,19 +22,18 @@
 	let joystickX = $state(0);
 	let joystickY = $state(0);
 
-	// Water ground texture (animated)
-	let gridTexture = $state<THREE.Texture>();
+	// Water ground texture
+	let gridTexture: THREE.Texture | undefined;
+	let waterReady = $state(false);
 	onMount(() => {
 		const canvas = document.createElement('canvas');
 		canvas.width = 256;
 		canvas.height = 256;
 		const ctx = canvas.getContext('2d')!;
 
-		// Deep water base
 		ctx.fillStyle = '#0c1e3a';
 		ctx.fillRect(0, 0, 256, 256);
 
-		// Wave-like grid lines
 		ctx.strokeStyle = '#2a6090';
 		ctx.lineWidth = 1.5;
 		for (let i = 0; i < 256; i += 16) {
@@ -47,7 +46,6 @@
 			ctx.stroke();
 		}
 
-		// Brighter highlight ripples
 		ctx.strokeStyle = '#4a90c0';
 		ctx.lineWidth = 1;
 		for (let i = 0; i < 6; i++) {
@@ -65,6 +63,7 @@
 		gridTexture.wrapS = THREE.RepeatWrapping;
 		gridTexture.wrapT = THREE.RepeatWrapping;
 		gridTexture.repeat.set(8, 8);
+		waterReady = true;
 	});
 
 	// Joystick input callback
@@ -210,14 +209,10 @@
 <T.DirectionalLight position={[5, 12, 3]} intensity={1.2} castShadow={false} />
 <T.HemisphereLight args={['#4488cc', '#112244', 0.6]} />
 
-<!-- Ground -->
+	<!-- Ground with water texture -->
 <T.Mesh rotation={[-Math.PI / 2, 0, 0]} receiveShadow position={[0, -0.05, 0]}>
 	<T.PlaneGeometry args={[WORLD_SIZE, WORLD_SIZE]} />
-	{#if gridTexture}
-		<T.MeshStandardMaterial map={gridTexture} color="#ffffff" roughness={0.5} metalness={0.0} />
-	{:else}
-		<T.MeshStandardMaterial color="#0d1b2a" roughness={0.8} metalness={0.1} />
-	{/if}
+	<T.MeshStandardMaterial map={gridTexture} color="#ffffff" roughness={0.4} metalness={0.0} />
 </T.Mesh>
 
 <!-- Ocean edge border -->
