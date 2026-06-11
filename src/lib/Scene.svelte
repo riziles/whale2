@@ -22,49 +22,68 @@
 	let joystickX = $state(0);
 	let joystickY = $state(0);
 
-	// Water ground texture (animated)
-	let gridTexture = $state<THREE.Texture>();
-	onMount(() => {
-		const canvas = document.createElement('canvas');
-		canvas.width = 256;
-		canvas.height = 256;
-		const ctx = canvas.getContext('2d')!;
+	// ── Animated water via ShaderMaterial ──
+	const waterUniforms = {
+		uTime: new THREE.Uniform(0),
+		uColorDeep: new THREE.Uniform(new THREE.Color('#030d1a')),
+		uColorShallow: new THREE.Uniform(new THREE.Color('#0a2a4a')),
+		uColorHighlight: new THREE.Uniform(new THREE.Color('#1a4a7a'))
+	};
 
-		// Deep water base
-		ctx.fillStyle = '#0a1628';
-		ctx.fillRect(0, 0, 256, 256);
-
-		// Wave-like grid lines
-		ctx.strokeStyle = '#1a3a5c';
-		ctx.lineWidth = 1;
-		for (let i = 0; i < 256; i += 16) {
-			ctx.beginPath();
-			for (let j = 0; j <= 256; j += 4) {
-				const y = i + Math.sin(j * 0.05 + i * 0.1) * 3;
-				if (j === 0) ctx.moveTo(j, y);
-				else ctx.lineTo(j, y);
-			}
-			ctx.stroke();
+	const waterVertexShader = /* glsl */ `
+		varying vec2 vUv;
+		varying vec3 vWorldPos;
+		void main() {
+			vec4 worldPos = modelMatrix * vec4(position, 1.0);
+			vWorldPos = worldPos.xyz;
+			vUv = uv;
+			gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
 		}
+	`;
 
-		// Lighter highlight ripples
-		ctx.strokeStyle = '#2a5a8c';
-		ctx.lineWidth = 0.5;
-		for (let i = 0; i < 6; i++) {
-			const y = 40 + i * 35;
-			ctx.beginPath();
-			for (let x = 0; x <= 256; x += 2) {
-				const yy = y + Math.sin(x * 0.08 + i) * 5;
-				if (x === 0) ctx.moveTo(x, yy);
-				else ctx.lineTo(x, yy);
-			}
-			ctx.stroke();
+	const waterFragmentShader = /* glsl */ `
+		varying vec2 vUv;
+		varying vec3 vWorldPos;
+		uniform float uTime;
+		uniform vec3 uColorDeep;
+		uniform vec3 uColorShallow;
+		uniform vec3 uColorHighlight;
+
+		void main() {
+			// Use world XZ (the rotated plane) and uv for patterns
+			float wx = vWorldPos.x * 0.6;
+			float wy = vWorldPos.z * 0.6;
+
+			// Large rolling waves
+			float wave1 = sin(wx + uTime * 0.6) * cos(wy + uTime * 0.4) * 0.35;
+			float wave2 = sin(wx * 1.5 - uTime * 0.5) * cos(wy * 1.3 + uTime * 0.7) * 0.25;
+
+			// Fine ripples
+			float ripple1 = sin(wx * 3.0 + uTime * 1.2) * cos(wy * 2.5 - uTime * 0.9) * 0.1;
+			float ripple2 = sin((wx + wy) * 4.0 + uTime * 1.8) * 0.08;
+			float ripple3 = sin(wx * 6.0 - uTime * 2.0) * cos(wy * 5.0 + uTime * 1.5) * 0.06;
+
+			float pattern = wave1 + wave2 + ripple1 + ripple2 + ripple3;
+
+			// Edge fade
+			float borderDist = max(abs(vWorldPos.x), abs(vWorldPos.z)) / 8.0;
+			float edgeFade = smoothstep(0.7, 1.0, borderDist);
+
+			vec3 color = mix(uColorDeep, uColorShallow, pattern * 0.7 + 0.3);
+			// Highlight wave crests
+			float crest = smoothstep(0.15, 0.28, pattern);
+			color = mix(color, uColorHighlight, crest * 0.4);
+			// Darken at edges
+			color = mix(color, uColorDeep, edgeFade * 0.5);
+
+			gl_FragColor = vec4(color, 1.0);
 		}
+	`;
 
-		gridTexture = new THREE.CanvasTexture(canvas);
-		gridTexture.wrapS = THREE.RepeatWrapping;
-		gridTexture.wrapT = THREE.RepeatWrapping;
-		gridTexture.repeat.set(8, 8);
+	const waterMat = new THREE.ShaderMaterial({
+		uniforms: waterUniforms,
+		vertexShader: waterVertexShader,
+		fragmentShader: waterFragmentShader
 	});
 
 	// Joystick input callback
@@ -77,11 +96,8 @@
 	useTask((delta) => {
 		if (game.state !== 'playing') return;
 
-		// Animate water texture
-		if (gridTexture && gridTexture.offset) {
-			gridTexture.offset.x += delta * 0.15;
-			gridTexture.offset.y -= delta * 0.1;
-		}
+		// Animate water shader
+		waterUniforms.uTime.value += delta;
 
 		// Combine keyboard and joystick input
 		let dx = 0;
@@ -210,10 +226,10 @@
 <T.DirectionalLight position={[5, 12, 3]} intensity={1.2} castShadow={false} />
 <T.HemisphereLight args={['#4488cc', '#112244', 0.6]} />
 
-<!-- Ground -->
-<T.Mesh rotation={[-Math.PI / 2, 0, 0]} receiveShadow position={[0, -0.05, 0]}>
+<!-- Animated water ground -->
+<T.Mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.05, 0]}>
 	<T.PlaneGeometry args={[WORLD_SIZE, WORLD_SIZE]} />
-	<T.MeshStandardMaterial color="#051020" roughness={0.3} metalness={0.5} />
+	<T is={waterMat} />
 </T.Mesh>
 
 <!-- Ocean edge border -->
