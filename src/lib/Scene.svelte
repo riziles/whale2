@@ -31,12 +31,12 @@
 		const ctx = canvas.getContext('2d')!;
 
 		// Deep water base
-		ctx.fillStyle = '#0a1628';
+		ctx.fillStyle = '#0c1e3a';
 		ctx.fillRect(0, 0, 256, 256);
 
 		// Wave-like grid lines
-		ctx.strokeStyle = '#1a3a5c';
-		ctx.lineWidth = 1;
+		ctx.strokeStyle = '#2a6090';
+		ctx.lineWidth = 1.5;
 		for (let i = 0; i < 256; i += 16) {
 			ctx.beginPath();
 			for (let j = 0; j <= 256; j += 4) {
@@ -47,9 +47,9 @@
 			ctx.stroke();
 		}
 
-		// Lighter highlight ripples
-		ctx.strokeStyle = '#2a5a8c';
-		ctx.lineWidth = 0.5;
+		// Brighter highlight ripples
+		ctx.strokeStyle = '#4a90c0';
+		ctx.lineWidth = 1;
 		for (let i = 0; i < 6; i++) {
 			const y = 40 + i * 35;
 			ctx.beginPath();
@@ -214,7 +214,7 @@
 <T.Mesh rotation={[-Math.PI / 2, 0, 0]} receiveShadow position={[0, -0.05, 0]}>
 	<T.PlaneGeometry args={[WORLD_SIZE, WORLD_SIZE]} />
 	{#if gridTexture}
-		<T.MeshStandardMaterial map={gridTexture} color="#0d1b2a" roughness={0.8} metalness={0.1} />
+		<T.MeshStandardMaterial map={gridTexture} color="#ffffff" roughness={0.5} metalness={0.0} />
 	{:else}
 		<T.MeshStandardMaterial color="#0d1b2a" roughness={0.8} metalness={0.1} />
 	{/if}
