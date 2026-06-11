@@ -45,7 +45,10 @@
 						z: Math.sin(angle) * radius
 					},
 					collected: false,
-					textureUrl: profile.avatar || null
+					textureUrl: profile.avatar || null,
+					screenX: 0,
+					screenY: 0,
+					behindCamera: false
 				};
 			});
 

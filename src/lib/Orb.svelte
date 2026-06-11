@@ -1,11 +1,9 @@
 <script lang="ts">
-	import { T, useTask, useThrelte } from '@threlte/core';
+	import { T, useTask } from '@threlte/core';
 	import * as THREE from 'three';
 	import type { OrbData } from './game.svelte';
 
 	const { orb }: { orb: OrbData } = $props();
-
-	const { camera } = useThrelte();
 
 	let floatY = $state(0);
 	let rotation = $state(0);
@@ -13,16 +11,6 @@
 	useTask((delta) => {
 		floatY = Math.sin(Date.now() * 0.002 + orb.id * 0.7) * 0.3;
 		rotation += delta * 0.5;
-
-		// Project 3D position to screen for avatar overlay (rendered in HUD)
-		const cam = camera.current;
-		if (cam) {
-			const worldPos = new THREE.Vector3(orb.position.x, 1.5 + floatY, orb.position.z);
-			const screenPos = worldPos.clone().project(cam);
-			orb.screenX = (screenPos.x * 0.5 + 0.5) * window.innerWidth;
-			orb.screenY = (-screenPos.y * 0.5 + 0.5) * window.innerHeight;
-			orb.behindCamera = screenPos.z > 1;
-		}
 	});
 
 	const hue = $derived((orb.id * 37) % 360);
