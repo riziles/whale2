@@ -22,6 +22,51 @@
 	let joystickX = $state(0);
 	let joystickY = $state(0);
 
+	// Water ground texture (animated)
+	let gridTexture = $state<THREE.Texture>();
+	onMount(() => {
+		const canvas = document.createElement('canvas');
+		canvas.width = 256;
+		canvas.height = 256;
+		const ctx = canvas.getContext('2d')!;
+
+		// Deep water base
+		ctx.fillStyle = '#0a1628';
+		ctx.fillRect(0, 0, 256, 256);
+
+		// Wave-like grid lines
+		ctx.strokeStyle = '#1a3a5c';
+		ctx.lineWidth = 1;
+		for (let i = 0; i < 256; i += 16) {
+			ctx.beginPath();
+			for (let j = 0; j <= 256; j += 4) {
+				const y = i + Math.sin(j * 0.05 + i * 0.1) * 3;
+				if (j === 0) ctx.moveTo(j, y);
+				else ctx.lineTo(j, y);
+			}
+			ctx.stroke();
+		}
+
+		// Lighter highlight ripples
+		ctx.strokeStyle = '#2a5a8c';
+		ctx.lineWidth = 0.5;
+		for (let i = 0; i < 6; i++) {
+			const y = 40 + i * 35;
+			ctx.beginPath();
+			for (let x = 0; x <= 256; x += 2) {
+				const yy = y + Math.sin(x * 0.08 + i) * 5;
+				if (x === 0) ctx.moveTo(x, yy);
+				else ctx.lineTo(x, yy);
+			}
+			ctx.stroke();
+		}
+
+		gridTexture = new THREE.CanvasTexture(canvas);
+		gridTexture.wrapS = THREE.RepeatWrapping;
+		gridTexture.wrapT = THREE.RepeatWrapping;
+		gridTexture.repeat.set(8, 8);
+	});
+
 	// Joystick input callback
 	function setJoystick(x: number, y: number) {
 		joystickX = x;
@@ -31,6 +76,12 @@
 	// Main game loop
 	useTask((delta) => {
 		if (game.state !== 'playing') return;
+
+		// Animate water texture
+		if (gridTexture && gridTexture.offset) {
+			gridTexture.offset.x += delta * 0.15;
+			gridTexture.offset.y -= delta * 0.1;
+		}
 
 		// Combine keyboard and joystick input
 		let dx = 0;
@@ -159,10 +210,14 @@
 <T.DirectionalLight position={[5, 12, 3]} intensity={1.2} castShadow={false} />
 <T.HemisphereLight args={['#4488cc', '#112244', 0.6]} />
 
-	<!-- Ground -->
+<!-- Ground -->
 <T.Mesh rotation={[-Math.PI / 2, 0, 0]} receiveShadow position={[0, -0.05, 0]}>
 	<T.PlaneGeometry args={[WORLD_SIZE, WORLD_SIZE]} />
-	<T.MeshStandardMaterial color="#1a3a5a" roughness={0.3} metalness={0.4} />
+	{#if gridTexture}
+		<T.MeshStandardMaterial map={gridTexture} color="#0d1b2a" roughness={0.8} metalness={0.1} />
+	{:else}
+		<T.MeshStandardMaterial color="#0d1b2a" roughness={0.8} metalness={0.1} />
+	{/if}
 </T.Mesh>
 
 <!-- Ocean edge border -->
