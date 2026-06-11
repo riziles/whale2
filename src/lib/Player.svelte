@@ -65,9 +65,9 @@
 		// Scale to game size (fit ~15% of board)
 		scene.scale.set(0.12, 0.18, 0.16);
 
-		// Rotate so the whale faces +X (local forward = game forward)
-		// Most GLB models face +Z; we need +X, so rotate -90° around Y
-		scene.rotation.y = -Math.PI / 2;
+		// Model's natural forward is +Z (head along +Z after snout compression).
+		// Game forward (W key) is -Z. So flip 180° so head faces -Z.
+		scene.rotation.y = Math.PI;
 	}
 </script>
 
