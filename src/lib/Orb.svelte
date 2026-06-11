@@ -9,22 +9,19 @@
 
 	let floatY = $state(0);
 	let rotation = $state(0);
-	let screenX = $state(0);
-	let screenY = $state(0);
-	let behindCamera = $state(true);
 
 	useTask((delta) => {
 		floatY = Math.sin(Date.now() * 0.002 + orb.id * 0.7) * 0.3;
 		rotation += delta * 0.5;
 
-		// Project 3D position to screen for avatar overlay
+		// Project 3D position to screen for avatar overlay (rendered in HUD)
 		const cam = camera.current;
 		if (cam) {
 			const worldPos = new THREE.Vector3(orb.position.x, 1.5 + floatY, orb.position.z);
 			const screenPos = worldPos.clone().project(cam);
-			screenX = (screenPos.x * 0.5 + 0.5) * window.innerWidth;
-			screenY = (-screenPos.y * 0.5 + 0.5) * window.innerHeight;
-			behindCamera = screenPos.z > 1;
+			orb.screenX = (screenPos.x * 0.5 + 0.5) * window.innerWidth;
+			orb.screenY = (-screenPos.y * 0.5 + 0.5) * window.innerHeight;
+			orb.behindCamera = screenPos.z > 1;
 		}
 	});
 
@@ -56,33 +53,5 @@
 	</T.Group>
 {/if}
 
-<!-- Avatar overlay — CSS positioned using projected screen coords -->
-{#if !orb.collected && orb.profile.avatar && !behindCamera}
-	<div
-		class="avatar-overlay"
-		style="left:{screenX}px;top:{screenY}px"
-	>
-		<img src={orb.profile.avatar} alt="" />
-	</div>
-{/if}
-
 <style>
-	.avatar-overlay {
-		position: fixed;
-		width: 44px;
-		height: 44px;
-		border-radius: 50%;
-		overflow: hidden;
-		border: 2px solid rgba(255, 255, 255, 0.4);
-		box-shadow: 0 0 12px rgba(91, 138, 247, 0.5);
-		pointer-events: none;
-		transform: translate(-50%, -50%);
-		z-index: 40;
-	}
-	.avatar-overlay img {
-		width: 100%;
-		height: 100%;
-		object-fit: cover;
-		display: block;
-	}
 </style>

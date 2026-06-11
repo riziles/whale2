@@ -190,6 +190,18 @@
 		</div>
 	</div>
 
+	<!-- Avatar overlays (outside Canvas, CSS-positioned) -->
+	{#each game.orbs as orb (orb.id)}
+		{#if !orb.collected && orb.profile.avatar && !orb.behindCamera}
+			<div
+				class="avatar-overlay"
+				style="left:{orb.screenX}px;top:{orb.screenY}px"
+			>
+				<img src={orb.profile.avatar} alt="" />
+			</div>
+		{/if}
+	{/each}
+
 	<!-- Mobile joystick -->
 	<!-- svelte-ignore a11y_no_static_element_interactions -->
 	<div
@@ -457,6 +469,26 @@
 	.play-again {
 		margin-top: 12px;
 		width: 100%;
+	}
+
+	/* Avatar overlays */
+	.avatar-overlay {
+		position: fixed;
+		width: 44px;
+		height: 44px;
+		border-radius: 50%;
+		overflow: hidden;
+		border: 2px solid rgba(255, 255, 255, 0.4);
+		box-shadow: 0 0 12px rgba(91, 138, 247, 0.5);
+		pointer-events: none;
+		transform: translate(-50%, -50%);
+		z-index: 40;
+	}
+	.avatar-overlay img {
+		width: 100%;
+		height: 100%;
+		object-fit: cover;
+		display: block;
 	}
 
 	@media (min-width: 769px) {

@@ -8,6 +8,9 @@ export interface OrbData {
 	position: { x: number; z: number };
 	collected: boolean;
 	textureUrl: string | null;
+	screenX: number;
+	screenY: number;
+	behindCamera: boolean;
 }
 
 // Shared keyboard state (non-reactive plain object for useTask polling)
