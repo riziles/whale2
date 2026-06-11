@@ -27,76 +27,112 @@
 </script>
 
 <T.Group bind:ref={whaleRef}>
-	<!-- Body - elongated sphere -->
-	<T.Mesh position={[0, 0, 0]}>
+	<!-- ── Body ── -->
+	<!-- Main body - large elongated ellipsoid -->
+	<T.Mesh scale={[3.5, 1.6, 1.8]}>
 		<T.SphereGeometry args={[0.5, 32, 24]} />
-		<T.MeshStandardMaterial color="#1a3a5c" roughness={0.4} metalness={0.3} />
+		<T.MeshStandardMaterial color="#3a6090" roughness={0.28} metalness={0.35} />
 	</T.Mesh>
-	<T.Mesh position={[-0.15, 0, 0]} scale={[1.4, 0.85, 0.85]}>
+
+	<!-- Upper body highlight -->
+	<T.Mesh position={[0.05, 0.15, 0]} scale={[3.3, 1.2, 1.5]}>
 		<T.SphereGeometry args={[0.5, 32, 24]} />
-		<T.MeshStandardMaterial color="#1e4a78" roughness={0.3} metalness={0.4} />
+		<T.MeshStandardMaterial color="#4a78b0" roughness={0.22} metalness={0.4} />
 	</T.Mesh>
 
-	<!-- Head bump -->
-	<T.Mesh position={[0.55, 0.05, 0]} scale={[0.8, 0.7, 0.7]}>
-		<T.SphereGeometry args={[0.4, 24, 16]} />
-		<T.MeshStandardMaterial color="#15305a" roughness={0.3} metalness={0.5} />
+	<!-- Lighter belly (countershading) -->
+	<T.Mesh position={[-0.1, -0.45, 0]} scale={[2.6, 0.65, 1.2]}>
+		<T.SphereGeometry args={[0.45, 20, 14]} />
+		<T.MeshStandardMaterial color="#8ab8e0" roughness={0.5} metalness={0.05} />
 	</T.Mesh>
 
-	<!-- Tail - upper -->
-	<T.Mesh position={[-0.65, 0.15, 0]} rotation={[0, 0, tailRotation]} scale={[0.4, 0.25, 1]}>
-		<T.ConeGeometry args={[0.25, 0.5, 8, 1]} />
-		<T.MeshStandardMaterial color="#0d2240" roughness={0.2} metalness={0.6} />
-	</T.Mesh>
-	<!-- Tail - lower -->
-	<T.Mesh position={[-0.65, -0.05, 0]} rotation={[0, 0, -tailRotation]} scale={[0.4, 0.25, 1]}>
-		<T.ConeGeometry args={[0.25, 0.5, 8, 1]} />
-		<T.MeshStandardMaterial color="#0d2240" roughness={0.2} metalness={0.6} />
+	<!-- ── Head ── -->
+	<!-- Snout -->
+	<T.Mesh position={[1.4, 0.1, 0]} scale={[1.3, 1.0, 1.2]}>
+		<T.SphereGeometry args={[0.35, 28, 20]} />
+		<T.MeshStandardMaterial color="#3e6ea0" roughness={0.28} metalness={0.45} />
 	</T.Mesh>
 
-	<!-- Flippers -->
-	<T.Mesh position={[-0.1, -0.15, 0.45]} rotation={[0.4, 0, 0]} scale={[0.15, 0.06, 0.35]}>
+	<!-- Head top dome -->
+	<T.Mesh position={[1.2, 0.4, 0]} scale={[1.1, 0.7, 0.9]}>
+		<T.SphereGeometry args={[0.3, 20, 14]} />
+		<T.MeshStandardMaterial color="#4488bb" roughness={0.25} metalness={0.45} />
+	</T.Mesh>
+
+	<!-- Mouth line -->
+	<T.Mesh position={[1.75, -0.1, 0]} rotation={[0, 0, 0.12]} scale={[0.1, 0.015, 0.45]}>
 		<T.BoxGeometry />
-		<T.MeshStandardMaterial color="#15305a" roughness={0.3} metalness={0.4} />
-	</T.Mesh>
-	<T.Mesh position={[-0.1, -0.15, -0.45]} rotation={[-0.4, 0, 0]} scale={[0.15, 0.06, 0.35]}>
-		<T.BoxGeometry />
-		<T.MeshStandardMaterial color="#15305a" roughness={0.3} metalness={0.4} />
+		<T.MeshBasicMaterial color="#081020" />
 	</T.Mesh>
 
-	<!-- Eyes -->
-	<T.Mesh position={[0.65, 0.15, 0.2]}>
-		<T.SphereGeometry args={[0.08, 12, 8]} />
+	<!-- ── Eyes ── -->
+	<!-- Left eye -->
+	<T.Mesh position={[1.3, 0.38, 0.42]}>
+		<T.SphereGeometry args={[0.12, 12, 8]} />
 		<T.MeshBasicMaterial color="white" />
 	</T.Mesh>
-	<T.Mesh position={[0.65, 0.15, 0.22]}>
-		<T.SphereGeometry args={[0.04, 8, 6]} />
+	<T.Mesh position={[1.32, 0.38, 0.47]}>
+		<T.SphereGeometry args={[0.06, 8, 6]} />
 		<T.MeshBasicMaterial color="black" />
 	</T.Mesh>
-	<T.Mesh position={[0.65, 0.15, -0.2]}>
-		<T.SphereGeometry args={[0.08, 12, 8]} />
+	<!-- Right eye -->
+	<T.Mesh position={[1.3, 0.38, -0.42]}>
+		<T.SphereGeometry args={[0.12, 12, 8]} />
 		<T.MeshBasicMaterial color="white" />
 	</T.Mesh>
-	<T.Mesh position={[0.65, 0.15, -0.22]}>
-		<T.SphereGeometry args={[0.04, 8, 6]} />
+	<T.Mesh position={[1.32, 0.38, -0.47]}>
+		<T.SphereGeometry args={[0.06, 8, 6]} />
 		<T.MeshBasicMaterial color="black" />
 	</T.Mesh>
 
-	<!-- Mouth / smile line -->
-	<T.Mesh position={[0.85, 0.0, 0]} rotation={[0, 0, 0.2]} scale={[0.08, 0.015, 0.2]}>
-		<T.BoxGeometry />
-		<T.MeshBasicMaterial color="#0a1a30" />
+	<!-- ── Dorsal fin (triangular) ── -->
+	<T.Mesh position={[-0.5, 0.6, 0]} rotation={[0, 0, -0.2]} scale={[0.3, 0.55, 0.12]}>
+		<T.ConeGeometry args={[0.45, 0.9, 6, 2]} />
+		<T.MeshStandardMaterial color="#2a4a70" roughness={0.2} metalness={0.6} />
 	</T.Mesh>
 
-	<!-- Belly lighter patch -->
-	<T.Mesh position={[-0.05, -0.25, 0]} scale={[0.8, 0.3, 0.55]}>
-		<T.SphereGeometry args={[0.4, 16, 12]} />
-		<T.MeshStandardMaterial color="#3a6a9a" roughness={0.5} metalness={0.1} />
+	<!-- ── Blowhole ── -->
+	<T.Mesh position={[0.75, 0.6, 0]} rotation={[0.3, 0, 0]} scale={[0.18, 0.1, 0.18]}>
+		<T.CylinderGeometry args={[0.04, 0.06, 0.1, 8]} />
+		<T.MeshStandardMaterial color="#0a1630" roughness={0.2} />
 	</T.Mesh>
 
-	<!-- Blowhole -->
-	<T.Mesh position={[0.3, 0.28, 0]} scale={[0.15, 0.1, 0.15]}>
-		<T.CylinderGeometry args={[0.05, 0.08, 0.12, 8]} />
-		<T.MeshStandardMaterial color="#0d2240" roughness={0.2} />
+	<!-- ── Tail fluke (prominent bilobed horizontal) ── -->
+	<T.Group position={[-1.8, 0, 0]}>
+		<!-- Tail peduncle -->
+		<T.Mesh position={[0.3, 0, 0]} scale={[0.5, 0.2, 0.22]}>
+			<T.SphereGeometry args={[0.5, 12, 8]} />
+			<T.MeshStandardMaterial color="#2a4870" roughness={0.2} metalness={0.55} />
+		</T.Mesh>
+
+		<!-- Left fluke lobe -->
+		<T.Mesh position={[-0.2, 0, 0.5]} rotation={[0, 0, tailRotation * 0.3]} scale={[0.2, 0.05, 0.4]}>
+			<T.BoxGeometry args={[1, 1, 2]} />
+			<T.MeshStandardMaterial color="#204060" roughness={0.2} metalness={0.55} />
+		</T.Mesh>
+
+		<!-- Right fluke lobe -->
+		<T.Mesh position={[-0.2, 0, -0.5]} rotation={[0, 0, tailRotation * 0.3]} scale={[0.2, 0.05, 0.4]}>
+			<T.BoxGeometry args={[1, 1, 2]} />
+			<T.MeshStandardMaterial color="#204060" roughness={0.2} metalness={0.55} />
+		</T.Mesh>
+
+		<!-- Center tail connector -->
+		<T.Mesh position={[-0.05, 0, 0]} scale={[0.12, 0.05, 0.15]}>
+			<T.BoxGeometry />
+			<T.MeshStandardMaterial color="#204060" roughness={0.2} metalness={0.55} />
+		</T.Mesh>
+	</T.Group>
+
+	<!-- ── Pectoral fins (flippers) ── -->
+	<!-- Left flipper -->
+	<T.Mesh position={[0.1, -0.22, 0.85]} rotation={[0.6, 0.1, 0.5]} scale={[0.12, 0.06, 0.5]}>
+		<T.BoxGeometry args={[1, 1, 3]} />
+		<T.MeshStandardMaterial color="#3a6090" roughness={0.26} metalness={0.4} />
+	</T.Mesh>
+	<!-- Right flipper -->
+	<T.Mesh position={[0.1, -0.22, -0.85]} rotation={[-0.6, -0.1, 0.5]} scale={[0.12, 0.06, 0.5]}>
+		<T.BoxGeometry args={[1, 1, 3]} />
+		<T.MeshStandardMaterial color="#3a6090" roughness={0.26} metalness={0.4} />
 	</T.Mesh>
 </T.Group>
