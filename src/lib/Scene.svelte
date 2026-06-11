@@ -213,11 +213,7 @@
 <!-- Ground -->
 <T.Mesh rotation={[-Math.PI / 2, 0, 0]} receiveShadow position={[0, -0.05, 0]}>
 	<T.PlaneGeometry args={[WORLD_SIZE, WORLD_SIZE]} />
-	{#if gridTexture}
-		<T.MeshStandardMaterial map={gridTexture} color="#0d1b2a" roughness={0.8} metalness={0.1} />
-	{:else}
-		<T.MeshStandardMaterial color="#0d1b2a" roughness={0.8} metalness={0.1} />
-	{/if}
+	<T.MeshStandardMaterial color="#051020" roughness={0.3} metalness={0.5} />
 </T.Mesh>
 
 <!-- Ocean edge border -->
