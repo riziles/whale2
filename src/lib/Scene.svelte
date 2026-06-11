@@ -78,7 +78,7 @@
 		if (game.state !== 'playing') return;
 
 		// Animate water texture
-		if (gridTexture) {
+		if (gridTexture && gridTexture.offset) {
 			gridTexture.offset.x += delta * 0.15;
 			gridTexture.offset.y -= delta * 0.1;
 		}
