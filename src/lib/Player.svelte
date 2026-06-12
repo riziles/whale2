@@ -65,9 +65,12 @@
 		// Scale to game size (fit ~15% of board)
 		scene.scale.set(0.12, 0.18, 0.16);
 
-		// Model's natural forward is +Z (head along +Z after snout compression).
-		// Game forward (W key) is -Z. So flip 180° so head faces -Z.
-		scene.rotation.y = Math.PI;
+		// Model's natural forward is +Z (confirmed: Z is longest axis at 3.45).
+		// Game movement direction (atan2 of dz,dx) rotates the parent group.
+		// The parent group rotation maps group's local +X to movement direction.
+		// Model faces +Z in its own space, placed inside parent group.
+		// Converting +Z to +X: rotation.y = PI/2
+		scene.rotation.y = Math.PI / 2;
 	}
 </script>
 
