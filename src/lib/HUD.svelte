@@ -164,9 +164,12 @@
 			{/if}
 
 			<div class="whale-toggle">
-				<label>
-					<input type="checkbox" checked={game.whaleStyle === 'geometric'} onchange={() => game.toggleWhaleStyle()} />
-					🐋 Bulbous whale
+				<span class="toggle-label">Whale style:</span>
+				<label class:active={game.whaleStyle === 'model'} onclick={() => game.whaleStyle = 'model'}>
+					🐋 3D Model
+				</label>
+				<label class:active={game.whaleStyle === 'geometric'} onclick={() => game.whaleStyle = 'geometric'}>
+					🔵 Bulbous
 				</label>
 			</div>
 		</div>
@@ -196,9 +199,12 @@
 			</div>
 		</div>
 		<div class="whale-toggle">
-			<label>
-				<input type="checkbox" checked={game.whaleStyle === 'geometric'} onchange={() => game.toggleWhaleStyle()} />
-				🐋 Bulbous
+			<span class="toggle-label">Whale:</span>
+			<label class:active={game.whaleStyle === 'model'} onclick={() => game.whaleStyle = 'model'}>
+				🐋 Model
+			</label>
+			<label class:active={game.whaleStyle === 'geometric'} onclick={() => game.whaleStyle = 'geometric'}>
+				🔵 Bulbous
 			</label>
 		</div>
 		<div class="hud-bottom">
@@ -417,6 +423,45 @@
 		padding: 6px 14px;
 		color: #556;
 		font-size: 0.75rem;
+	}
+
+	/* Whale toggle */
+	.whale-toggle {
+		display: flex;
+		align-items: center;
+		gap: 8px;
+		justify-content: center;
+		margin: 8px 0;
+	}
+	.whale-toggle .toggle-label {
+		color: #668;
+		font-size: 0.75rem;
+		font-weight: 600;
+		text-transform: uppercase;
+		letter-spacing: 0.5px;
+	}
+	.whale-toggle label {
+		background: rgba(10, 10, 30, 0.6);
+		border: 1px solid #2a2a5a;
+		border-radius: 20px;
+		padding: 4px 12px;
+		color: #778;
+		font-size: 0.8rem;
+		cursor: pointer;
+		transition: all 0.2s;
+		user-select: none;
+	}
+	.whale-toggle label:hover {
+		border-color: #4a4a8a;
+		color: #aab;
+	}
+	.whale-toggle label.active {
+		background: rgba(37, 99, 235, 0.25);
+		border-color: #2563eb;
+		color: #60a5fa;
+	}
+	.whale-toggle input[type="radio"] {
+		display: none;
 	}
 
 	/* Joystick */
