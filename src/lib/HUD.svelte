@@ -415,6 +415,7 @@
 		display: flex;
 		align-items: center;
 		gap: 8px;
+		pointer-events: auto;
 	}
 	.back-btn {
 		background: rgba(10, 10, 30, 0.7);
@@ -426,6 +427,7 @@
 		cursor: pointer;
 		transition: all 0.2s;
 		line-height: 1;
+		pointer-events: auto;
 	}
 	.back-btn:hover {
 		border-color: #cc4444;
