@@ -162,6 +162,18 @@
 			{#if game.error}
 				<p class="error">{game.error}</p>
 			{/if}
+
+			<div class="whale-toggle">
+				<span class="toggle-label">Whale style:</span>
+				<div role="radiogroup" aria-label="Whale style">
+					<button type="button" role="radio" aria-checked={game.whaleStyle === 'model'} class:active={game.whaleStyle === 'model'} onclick={() => game.whaleStyle = 'model'}>
+						🐋 3D Model
+					</button>
+					<button type="button" role="radio" aria-checked={game.whaleStyle === 'geometric'} class:active={game.whaleStyle === 'geometric'} onclick={() => game.whaleStyle = 'geometric'}>
+						🔵 Bulbous
+					</button>
+				</div>
+			</div>
 		</div>
 	</div>
 {/if}
@@ -184,8 +196,13 @@
 				<span class="score-icon">🦴</span>
 				<span class="score-text">{game.score} / {game.targetOrbs}</span>
 			</div>
-			<div class="player-info">
-				<span class="player-name">{game.playerName}</span>
+			<div class="hud-right">
+				<div class="player-info">
+					<span class="player-name">{game.playerName}</span>
+				</div>
+				<button class="back-btn" onclick={() => game.reset()} title="Back to menu">
+					✕
+				</button>
 			</div>
 		</div>
 		<div class="hud-bottom">
@@ -247,6 +264,7 @@
 				{/each}
 			</div>
 			<button class="play-again" onclick={playAgain}>Play Again</button>
+			<button class="back-btn exit-btn" onclick={() => game.reset()}>← Exit</button>
 		</div>
 	</div>
 {/if}
@@ -395,6 +413,29 @@
 		color: #8899bb;
 		font-size: 0.85rem;
 	}
+	.hud-right {
+		display: flex;
+		align-items: center;
+		gap: 8px;
+		pointer-events: auto;
+	}
+	.back-btn {
+		background: rgba(10, 10, 30, 0.7);
+		border: 1px solid #2a2a5a;
+		border-radius: 12px;
+		color: #8899bb;
+		padding: 6px 12px;
+		font-size: 1rem;
+		cursor: pointer;
+		transition: all 0.2s;
+		line-height: 1;
+		pointer-events: auto;
+	}
+	.back-btn:hover {
+		border-color: #cc4444;
+		color: #cc4444;
+		background: rgba(40, 10, 10, 0.7);
+	}
 	.hud-bottom {
 		text-align: center;
 	}
@@ -405,6 +446,46 @@
 		color: #556;
 		font-size: 0.75rem;
 	}
+
+	/* Whale toggle */
+	.whale-toggle {
+		display: flex;
+		align-items: center;
+		gap: 8px;
+		justify-content: center;
+		margin: 8px 0;
+	}
+	.whale-toggle .toggle-label {
+		color: #668;
+		font-size: 0.75rem;
+		font-weight: 600;
+		text-transform: uppercase;
+		letter-spacing: 0.5px;
+	}
+	.whale-toggle button {
+		background: rgba(10, 10, 30, 0.6);
+		border: 1px solid #2a2a5a;
+		border-radius: 20px;
+		padding: 4px 12px;
+		color: #778;
+		font-size: 0.8rem;
+		cursor: pointer;
+		transition: all 0.2s;
+		user-select: none;
+	}
+	.whale-toggle button:hover {
+		border-color: #4a4a8a;
+		color: #aab;
+	}
+	.whale-toggle button.active {
+		background: rgba(37, 99, 235, 0.25);
+		border-color: #2563eb;
+		color: #60a5fa;
+	}
+	/* unused, kept for reference */
+	/* .whale-toggle input[type="radio"] {
+		display: none;
+	} */
 
 	/* Joystick */
 	.joystick-container {
@@ -472,6 +553,13 @@
 	.play-again {
 		margin-top: 12px;
 		width: 100%;
+	}
+	.exit-btn {
+		margin-top: 8px;
+		width: 100%;
+		background: rgba(40, 10, 10, 0.5);
+		border-color: #442222;
+		color: #996666;
 	}
 
 	/* Avatar overlays */

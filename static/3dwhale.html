@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Three.js Whale Example</title>
+  <style>
+    body { margin: 0; background: #0a1a3a; }
+    canvas { display: block; }
+  </style>
+</head>
+<body>
+  <script type="importmap">
+{
+  "imports": {
+    "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+    "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+  }
+}
+  </script>
+  <script type="module">
+  import * as THREE from 'three';
+  import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+
+  const scene = new THREE.Scene();
+  scene.background = new THREE.Color(0x0a1a3a);
+
+  const camera = new THREE.PerspectiveCamera(60, window.innerWidth/window.innerHeight, 0.1, 100);
+  camera.position.set(0, 0.8, 5);
+  camera.lookAt(0, 0, 0);
+
+  const renderer = new THREE.WebGLRenderer({ antialias: true });
+  renderer.setSize(window.innerWidth, window.innerHeight);
+  document.body.appendChild(renderer.domElement);
+
+  // Stronger, warmer lighting to show off the blue
+  const ambient = new THREE.AmbientLight(0x8899cc, 1.2);
+  scene.add(ambient);
+  const key = new THREE.DirectionalLight(0xffffff, 2.5);
+  key.position.set(4, 6, 3);
+  scene.add(key);
+  const fill = new THREE.DirectionalLight(0x88ccff, 1.2);
+  fill.position.set(-3, 1, -2);
+  scene.add(fill);
+  const rim = new THREE.DirectionalLight(0xffffff, 1.5);
+  rim.position.set(0, -1, 4);
+  scene.add(rim);
+
+  const loader = new GLTFLoader();
+  loader.load(
+    'https://raw.githubusercontent.com/ToxSam/cc0-models-Polygonal-Mind/main/projects/ca-world/CAIO_Whale_01.glb',
+    function (gltf) {
+      const whale = gltf.scene;
+
+      // Override all materials with DeepSeek blue
+      // Also: shorten the snout by compressing front vertices
+      let minX = Infinity, maxX = -Infinity;
+      whale.traverse((child) => {
+        if (child.isMesh) {
+          child.material = new THREE.MeshStandardMaterial({
+            color: 0x3b82f6,
+            roughness: 0.3,
+            metalness: 0.25
+          });
+          // Find the X extent of this mesh's vertices
+          const pos = child.geometry.attributes.position;
+          for (let i = 0; i < pos.count; i++) {
+            const x = pos.getX(i);
+            if (x < minX) minX = x;
+            if (x > maxX) maxX = x;
+          }
+        }
+      });
+
+      // Shorten the snout: compress everything beyond 60% of the x-range inward
+      const snoutStart = minX + (maxX - minX) * 0.55;
+      const compression = 0.45; // how much to compress (0 = no change, 1 = flat)
+      whale.traverse((child) => {
+        if (child.isMesh) {
+          const pos = child.geometry.attributes.position;
+          for (let i = 0; i < pos.count; i++) {
+            const x = pos.getX(i);
+            if (x > snoutStart) {
+              const t = (x - snoutStart) / (maxX - snoutStart);
+              const newX = snoutStart + (x - snoutStart) * (1 - compression * t);
+              pos.setX(i, newX);
+            }
+          }
+          pos.needsUpdate = true;
+          child.geometry.computeVertexNormals();
+        }
+      });
+
+      whale.scale.set(0.3, 0.5, 0.45);
+      whale.position.y = -0.2;
+      scene.add(whale);
+      console.log('Whale loaded with DeepSeek blue!');
+
+      function animate() {
+        requestAnimationFrame(animate);
+        whale.rotation.y += 0.005;
+        whale.position.y = -0.2 + Math.sin(Date.now() * 0.002) * 0.08;
+        renderer.render(scene, camera);
+      }
+      animate();
+    },
+    function (xhr) {
+      console.log((xhr.loaded / xhr.total * 100).toFixed(0) + '% loaded');
+    },
+    function (error) {
+      console.error('Error:', error);
+    }
+  );
+
+  window.addEventListener('resize', () => {
+    camera.aspect = window.innerWidth / window.innerHeight;
+    camera.updateProjectionMatrix();
+    renderer.setSize(window.innerWidth, window.innerHeight);
+  });
+  </script>
+</body>
+</html>
