@@ -1,103 +1,106 @@
-# Whale Chaser — Handoff Notes
+# Whale Chaser — Handoff Notes (Post mwr-3dwhales merge)
 
-## Project Overview
-SvelteKit + Threlte (Three.js) 3D browser game where you play as a whale chasing avatar orbs from Bluesky follows.
-
-**Repo:** https://github.com/riziles/whale2  
-**Dev:** `pnpm dev` (port 5399, Vite proxy for avatars)  
-**Deploy:** GitHub Pages via Actions — live at `https://riziles.github.io/whale2/`
+## Current State (main)
+- **Deployed**: https://riziles.github.io/whale2/
+- **Dev**: `pnpm dev` → http://localhost:5399
+- **Branch**: main (freshly merged from mwr-3dwhales)
 
 ## Architecture
 ```
-+page.svelte → Canvas → Scene.svelte (game loop)
-                        ├── Player.svelte (whale model)
-                        └── Orb.svelte (colored sphere + glow ring)
-              → HUD.svelte (UI, avatar overlays, joystick, input form)
++page.svelte → Canvas → Scene.svelte (game loop, water shader, camera, AI)
+              ├── Player.svelte (whale — GLB model or GeometricWhale)
+              │   └── GeometricWhale.svelte (bulbous sphere-based whale)
+              ├── Orb.svelte (colored sphere + glow ring per orb)
+              └── HUD.svelte (input form, score, exit button, overlay, joystick)
 
-game.svelte.ts — shared state (GameStore with $state runes)
-api.ts — Bluesky API helpers (resolveHandle, getFollows, getProfile)
+game.svelte.ts — GameStore with $state runes, orb data, input keys, AI state
+api.ts — Bluesky helpers (resolveHandle, getMutualFollows, getProfile)
 ```
 
-## Key Technical Lessons
+## Whale Models — Two Styles
 
-### 1. Threlte v8 camera access
-`useThrelte().camera` returns a `CurrentWritable` store wrapper, NOT a Camera object.
-Use `camera.current` to get the actual Camera. Never use `$derived(camera)` — doesn't work.
-The explicit `<T.PerspectiveCamera bind:ref={camRef}>` is most reliable.
+### 1. 3D GLB Model (default)
+- Source: CC0 whale from Polygonal Mind (`CAIO_Whale_01.glb`, 414KB)
+- Loaded via `@threlte/extras` `<GLTF>` component with `oncreate` callback
+- Materials overridden to DeepSeek blue (`#3b82f6`) via `scene.traverse()`
+- Snout compressed (vertex-level) to make it shorter/fatter
+- Scale: `0.12, 0.18, 0.16` → ~17% of board width
+- Rotation: `rotation.y = Math.PI / 2` maps model's +Z forward to game +X
 
-### 2. Svelte 5 reactivity with Threlte
-- `$state(new Set())` does NOT work for keyboard input in useTask — use plain `Record<string, boolean>`
-- `$state` wrapping `THREE.Texture` breaks Three.js rendering — keep textures as plain variables
-- Props are read-only in Svelte 5! Mutating `orb.position.x` doesn't trigger reactivity.
-  Fix: replace the whole object in the array: `game.orbs[i] = { ...orb, position: { x: newX, z: newZ } }`
+### 2. Geometric/Bulbous Whale
+- `GeometricWhale.svelte` — overlapping spheres, cones, boxes
+- Retained from original code with DeepSeek blue palette
+- Toggle between styles via `game.whaleStyle` ('model' | 'geometric')
 
-### 3. Whale positioning (local vs world space)
-Two nested `<T.Group>`: outer `whaleGroup` (position + rotation) and inner `whaleRef` (bob animation).
-**Must set position on outer group in world space** — inner group is in rotated local space.
-Setting local z when parent is rotated makes the whale move diagonally.
+## Key Lessons Learned
 
-### 4. Rotation formula
-Whale model faces +X. `rotation.y = Math.atan2(-dz, dx)` makes it face movement direction.
+### Threlte v8 + Svelte 5 Gotchas
+1. **Camera**: `useThrelte().camera` is a `CurrentWritable` wrapper — use `.current` for the actual Camera object
+2. **Reactivity**: Mutating `orb.position.x` doesn't trigger Svelte 5 updates. Must replace the whole object in the array: `game.orbs[i] = { ...orb, position: { x: newX, z: newZ } }`
+3. **$state breaks Three.js**: Wrapping `THREE.Texture` or `THREE.ShaderMaterial` in `$state()` causes rendering failures. Use plain variables.
+4. **$state Set() broken**: Don't use for keyboard input. Use plain `Record<string, boolean>`
+5. **onMount vs $effect**: `$effect` re-runs and can delete globals. Use `onMount` for one-time window property exposure (e.g., `window.__gameState`)
 
-### 5. Avatar images from cdn.bsky.app
-- `<img>` tags in DOM work without CORS when served from same origin or file://
-- From `localhost`, CDN may throttle/block after many requests
-- **Vite proxy** (`/avatar` → `cdn.bsky.app/img/avatar`) is the reliable dev fix
-- Three.js `TextureLoader` always fails (CORS for WebGL) — don't bother
+### GLB Model Integration
+1. **Model orientation**: Always check bounding box to find the long axis. This model was 3.45 on Z, 1.27 on X
+2. **Material override**: The original model rendered near-black/wireframe. Override materials with `scene.traverse()` + `child.material = new THREE.MeshStandardMaterial(...)`
+3. **Snout shortening**: Vertex-level compression works well. Find X extent, compress vertices past 55% of the range
+4. **Facing direction fix**: Model +Z → game +X needed `rotation.y = PI/2`. The parent `whaleGroup` rotates so its +X points to movement direction (via `atan2(-dz, dx)`)
 
-### 6. `<HTML>` component from @threlte/extras
-Does NOT inherit parent `<T.Group>` world position for screen projection.
-All sprites stack at the same screen position. Don't use for positioned UI.
+### Water Shader
+- `ShaderMaterial` with world-space wave functions works (not CanvasTexture, not MeshStandardMaterial offset animation)
+- CRITICAL: On a horizontally rotated plane, use `vWorldPos.x` and `vWorldPos.z` (NOT `.y` which is always 0)
+- Created via `new THREE.ShaderMaterial({uniforms, vertexShader, fragmentShader})` BEFORE the template, passed via `<T is={material} />`
+- Animated in `useTask` by updating `uniforms.uTime.value`
+- Gemini confirmed: "organic, water-like or liquid texture... cloud-like luminous patches"
 
-### 7. CSS overlay approach (what works)
-1. In Scene's `useTask`, project 3D world coords to screen using `camera.project()`
-2. Store `screenX`, `screenY`, `behindCamera` on each orb object
-3. Render CSS-positioned `<div>` overlays in HUD (outside Canvas) at those coords
-
-### 8. Water rendering attempts (all failed)
-- **CanvasTexture** with UV offset animation → texture never applied to material
-- **ShaderMaterial** via `<T.ShaderMaterial>` → rendered white (GLSL version issue with r184 WebGL2)
-- **Fallback**: dark navy `MeshStandardMaterial` with `color="#051020" metalness=0.5` — looks like dark water
-- Gemini confirmed the dark ground reads as "very dark navy blue, almost black"
-
-### 9. Playwright + Gemini for visual verification
-```javascript
-// Take screenshot
-playwright-cli screenshot --filename=check.png
-
-// Send to Gemini
-const img = fs.readFileSync('check.png');
-const base64 = img.toString('base64');
+### Playwright + Gemini Workflow
+```js
+// 1. Start dev server: pnpm dev (port 5399)
+// 2. Open browser:
+playwright-cli open http://localhost:5399
+// 3. Interact:
+playwright-cli click e13           // click Go
+playwright-cli keydown w           // move forward
+playwright-cli screenshot --filename=test.png
+// 4. Verify with Gemini:
+const img = fs.readFileSync('test.png');
+const b64 = img.toString('base64');
 fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=' + process.env.GEMINI_API_KEY, {
   method: 'POST',
   headers: { 'Content-Type': 'application/json' },
-  body: JSON.stringify({
-    contents: [{ parts: [
-      { text: 'Describe what you see in this screenshot' },
-      { inline_data: { mime_type: 'image/png', data: base64 } }
-    ]}]
-  })
+  body: JSON.stringify({ contents: [{ parts: [
+    { text: 'Describe what you see' },
+    { inline_data: { mime_type: 'image/png', data: b64 } }
+  ]}] })
 }).then(r => r.json()).then(d => console.log(d.candidates[0].content.parts[0].text));
 ```
+- Headed mode: `playwright-cli open http://localhost:5399 --headed` — shows the browser window so a human can see alongside
+- Gemini IS useful for visual verification — catches invisible whales, wrong axis shaders, correct direction, etc.
 
-### 10. Playwright CLI
-```
-playwright-cli open http://localhost:5399 --headed  # open browser
-playwright-cli snapshot                              # capture page snapshot
-playwright-cli click e13                             # click element by ref
-playwright-cli keydown w / keyup w                   # hold/release key
-playwright-cli screenshot --filename=out.png          # screenshot
-playwright-cli eval "JS expression"                   # evaluate in page
-playwright-cli close-all                              # close all browsers
-```
+### A11y in Svelte 5
+- Svelte 5 changed warning codes to snake_case and requires **separate** `svelte-ignore` comments per rule (comma-separated no longer works in runes mode)
+- Better approach: use proper ARIA attributes (`role="radio"`, `aria-checked`, `role="radiogroup"`) instead of ignoring warnings
+- `<button type="button" role="radio">` passes all checks without any `svelte-ignore`
 
-## Current State
-- ✅ WASD movement, whale faces direction, camera follows
-- ✅ 10 colored orbs with avatar overlays at unique positions
-- ✅ Orb AI: random wandering, flee from whale within 3 units
-- ✅ Dark navy water-like ground
-- ✅ Glowing corner pillars
-- ✅ Score tracking, victory screen with collected avatars
-- ✅ GitHub Pages deployment via Actions
-- ✅ Playwright tests passing
-- ⚠️ Water animation not yet implemented (all texture/shader attempts failed)
+### Bluesky API
+- Mutual follows: `getMutualFollows()` fetches user's follows, then for each checks if they follow back by scanning their follow list
+- Runs in batches of 20 concurrent, stops at limit
+- All public API — no auth needed
+- User must wait for the batch checks (can be slow for accounts with many follows)
+
+### CSS/HUD
+- `.hud` has `pointer-events: none` — every interactive child needs explicit `pointer-events: auto`
+- Avatar overlays at `z-index: 40`, HUD at `z-index: 50`
+- Joystick at `z-index: 60`
+
+## Post-compaction Ideas
+- [ ] Blowhole particle/spray effect when whale moves
+- [ ] Sound effects (orb collection, victory)
+- [ ] Orb color coding by category
+- [ ] Mobile performance optimization
+- [ ] Better victory screen animations
+- [ ] Allow custom avatar/name for the player
+- [ ] Add multiple difficulty levels (faster orbs, smaller collision radius)
+- [ ] Rate limiting / caching for Bluesky API calls
+- [ ] Service worker for offline support (partial)
