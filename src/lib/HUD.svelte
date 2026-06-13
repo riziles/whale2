@@ -165,12 +165,14 @@
 
 			<div class="whale-toggle">
 				<span class="toggle-label">Whale style:</span>
-				<button type="button" class:active={game.whaleStyle === 'model'} onclick={() => game.whaleStyle = 'model'}>
-					🐋 3D Model
-				</button>
-				<button type="button" class:active={game.whaleStyle === 'geometric'} onclick={() => game.whaleStyle = 'geometric'}>
-					🔵 Bulbous
-				</button>
+				<div role="radiogroup" aria-label="Whale style">
+					<button type="button" role="radio" aria-checked={game.whaleStyle === 'model'} class:active={game.whaleStyle === 'model'} onclick={() => game.whaleStyle = 'model'}>
+						🐋 3D Model
+					</button>
+					<button type="button" role="radio" aria-checked={game.whaleStyle === 'geometric'} class:active={game.whaleStyle === 'geometric'} onclick={() => game.whaleStyle = 'geometric'}>
+						🔵 Bulbous
+					</button>
+				</div>
 			</div>
 		</div>
 	</div>
@@ -460,7 +462,7 @@
 		text-transform: uppercase;
 		letter-spacing: 0.5px;
 	}
-	.whale-toggle label {
+	.whale-toggle button {
 		background: rgba(10, 10, 30, 0.6);
 		border: 1px solid #2a2a5a;
 		border-radius: 20px;
@@ -471,15 +473,20 @@
 		transition: all 0.2s;
 		user-select: none;
 	}
-	.whale-toggle label:hover {
+	.whale-toggle button:hover {
 		border-color: #4a4a8a;
 		color: #aab;
 	}
-	.whale-toggle label.active {
+	.whale-toggle button.active {
 		background: rgba(37, 99, 235, 0.25);
 		border-color: #2563eb;
 		color: #60a5fa;
 	}
+	/* unused, kept for reference */
+	/* .whale-toggle input[type="radio"] {
+		display: none;
+	} */
+
 	/* Joystick */
 	.joystick-container {
 		position: fixed;
