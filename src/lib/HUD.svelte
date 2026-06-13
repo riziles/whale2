@@ -198,15 +198,6 @@
 				<span class="player-name">{game.playerName}</span>
 			</div>
 		</div>
-		<div class="whale-toggle">
-			<span class="toggle-label">Whale:</span>
-			<label class:active={game.whaleStyle === 'model'} onclick={() => game.whaleStyle = 'model'}>
-				🐋 Model
-			</label>
-			<label class:active={game.whaleStyle === 'geometric'} onclick={() => game.whaleStyle = 'geometric'}>
-				🔵 Bulbous
-			</label>
-		</div>
 		<div class="hud-bottom">
 			<span class="hint">WASD or joystick to move</span>
 		</div>
