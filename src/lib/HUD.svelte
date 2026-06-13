@@ -165,12 +165,12 @@
 
 			<div class="whale-toggle">
 				<span class="toggle-label">Whale style:</span>
-				<label class:active={game.whaleStyle === 'model'} onclick={() => game.whaleStyle = 'model'}>
+				<button type="button" class:active={game.whaleStyle === 'model'} onclick={() => game.whaleStyle = 'model'}>
 					🐋 3D Model
-				</label>
-				<label class:active={game.whaleStyle === 'geometric'} onclick={() => game.whaleStyle = 'geometric'}>
+				</button>
+				<button type="button" class:active={game.whaleStyle === 'geometric'} onclick={() => game.whaleStyle = 'geometric'}>
 					🔵 Bulbous
-				</label>
+				</button>
 			</div>
 		</div>
 	</div>
@@ -480,10 +480,6 @@
 		border-color: #2563eb;
 		color: #60a5fa;
 	}
-	.whale-toggle input[type="radio"] {
-		display: none;
-	}
-
 	/* Joystick */
 	.joystick-container {
 		position: fixed;
