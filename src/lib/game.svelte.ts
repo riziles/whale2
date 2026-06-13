@@ -31,6 +31,11 @@ class GameStore {
 
 	playerName = $state('Player');
 	playerAvatar = $state<string | null>(null);
+	whaleStyle = $state<'geometric' | 'model'>('model');
+
+	toggleWhaleStyle() {
+		this.whaleStyle = this.whaleStyle === 'model' ? 'geometric' : 'model';
+	}
 
 	reset() {
 		this.state = 'input';

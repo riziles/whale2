@@ -162,6 +162,13 @@
 			{#if game.error}
 				<p class="error">{game.error}</p>
 			{/if}
+
+			<div class="whale-toggle">
+				<label>
+					<input type="checkbox" checked={game.whaleStyle === 'geometric'} onchange={() => game.toggleWhaleStyle()} />
+					🐋 Bulbous whale
+				</label>
+			</div>
 		</div>
 	</div>
 {/if}
@@ -187,6 +194,12 @@
 			<div class="player-info">
 				<span class="player-name">{game.playerName}</span>
 			</div>
+		</div>
+		<div class="whale-toggle">
+			<label>
+				<input type="checkbox" checked={game.whaleStyle === 'geometric'} onchange={() => game.toggleWhaleStyle()} />
+				🐋 Bulbous
+			</label>
 		</div>
 		<div class="hud-bottom">
 			<span class="hint">WASD or joystick to move</span>
