@@ -194,8 +194,13 @@
 				<span class="score-icon">🦴</span>
 				<span class="score-text">{game.score} / {game.targetOrbs}</span>
 			</div>
-			<div class="player-info">
-				<span class="player-name">{game.playerName}</span>
+			<div class="hud-right">
+				<div class="player-info">
+					<span class="player-name">{game.playerName}</span>
+				</div>
+				<button class="back-btn" onclick={() => game.reset()} title="Back to menu">
+					✕
+				</button>
 			</div>
 		</div>
 		<div class="hud-bottom">
@@ -257,6 +262,7 @@
 				{/each}
 			</div>
 			<button class="play-again" onclick={playAgain}>Play Again</button>
+			<button class="back-btn exit-btn" onclick={() => game.reset()}>← Exit</button>
 		</div>
 	</div>
 {/if}
@@ -405,6 +411,27 @@
 		color: #8899bb;
 		font-size: 0.85rem;
 	}
+	.hud-right {
+		display: flex;
+		align-items: center;
+		gap: 8px;
+	}
+	.back-btn {
+		background: rgba(10, 10, 30, 0.7);
+		border: 1px solid #2a2a5a;
+		border-radius: 12px;
+		color: #8899bb;
+		padding: 6px 12px;
+		font-size: 1rem;
+		cursor: pointer;
+		transition: all 0.2s;
+		line-height: 1;
+	}
+	.back-btn:hover {
+		border-color: #cc4444;
+		color: #cc4444;
+		background: rgba(40, 10, 10, 0.7);
+	}
 	.hud-bottom {
 		text-align: center;
 	}
@@ -521,6 +548,13 @@
 	.play-again {
 		margin-top: 12px;
 		width: 100%;
+	}
+	.exit-btn {
+		margin-top: 8px;
+		width: 100%;
+		background: rgba(40, 10, 10, 0.5);
+		border-color: #442222;
+		color: #996666;
 	}
 
 	/* Avatar overlays */
